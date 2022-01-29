@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # Make vim the default editor.
-export EDITOR='vim';
+# export EDITOR='vim';
 
 # Enable persistent REPL history for `node`.
 export NODE_REPL_HISTORY=~/.node_history;
@@ -18,6 +18,11 @@ export HISTSIZE='32768';
 export HISTFILESIZE="${HISTSIZE}";
 # Omit duplicates and commands that begin with a space from history.
 export HISTCONTROL='ignoreboth';
+# This is specifically for zsh and refers to number of commands stored in history file
+export SAVEHIST="${HISTSIZE}"
+
+# Where the history is saved
+export HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
 
 # Prefer US English and use UTF-8.
 export LANG='en_US.UTF-8';
