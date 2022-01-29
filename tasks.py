@@ -112,7 +112,12 @@ def bootstrap(c):
         --exclude "bootstrap.sh" \
         --exclude "README.md" \
         --exclude "LICENSE-MIT.txt" \
-        --exclude "venv/**" \
+        --exclude "venv" \
+        --exclude "brew.sh" \
+        --exclude "setup.sh \
+        --exclude "init" \
+        --exclude "tasks.py \
+        --exclude "requirements.txt" \
         -avh --no-perms . ~;
     """)
     c.run("source ~/.zprofile;", shell="/bin/zsh")
