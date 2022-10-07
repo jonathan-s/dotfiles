@@ -44,6 +44,7 @@ brew install vim
 brew install grep
 brew install openssh
 brew install screen
+brew install nmap
 
 # Install font tools.
 brew tap bramstein/webfonttools
@@ -81,6 +82,7 @@ brew install cmake
 brew install cheat
 brew install dep
 brew install direnv
+brew install docker-machine
 brew install ffmpeg
 brew install gcutil
 brew install geckodriver
@@ -114,6 +116,7 @@ brew install yarn
 # Cross platform presentation and productivity app
 brew install --cask lynx
 brew install --cask firefox
+brew tap homebrew/cask-versions
 brew install --cask firefox-developer-edition
 brew install --cask alfred
 brew install --cask bitwarden

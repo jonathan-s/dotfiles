@@ -11,6 +11,29 @@ INIT_DIR = Path.cwd() / 'init'
 
 
 @task
+def brew(c):
+    installed = c.run('brew list --cask -1')
+    casks = installed.stdout.replace('\r', '').split('\n')
+
+    formula = c.run('brew leaves')
+    formulas = formula.stdout.replace('\r', '').split('\n')
+
+    brew_path = Path.cwd() / 'brew.sh'
+    with brew_path.open(mode='a+') as f:
+        f.seek(0)
+        contents = f.read()
+        for cask in casks:
+            if cask not in contents:
+                f.write(f'brew install --cask {cask}\n')
+                print(f'Added {cask}')
+
+        for formula in formulas:
+            if formula not in contents:
+                f.write(f'brew install {formula}\n')
+                print(f'Added {formula}')
+
+
+@task
 def backup_vscode(c):
     """
     Copy settings and extensions from VS Code to dotfiles
