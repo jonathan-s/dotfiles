@@ -141,6 +141,7 @@ brew install --cask kap
 # Keyboard customizer
 brew install --cask disk-inventory-x
 brew install --cask docker
+brew install --cask discord
 brew install --cask karabiner-elements
 brew install --cask keybase
 brew install --cask libreoffice
