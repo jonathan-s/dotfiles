@@ -1,4 +1,3 @@
-// Place your settings in this file to overwrite the default settings
 {
     "python.linting.flake8Enabled": true,
     "files.trimTrailingWhitespace": true,
@@ -56,7 +55,11 @@
     "editor.wordWrapColumn": 80,
     "[markdown]": {
         "editor.wordWrap": "wordWrapColumn",
-        "editor.quickSuggestions": false
+        "editor.quickSuggestions": {
+            "comments": "off",
+            "strings": "off",
+            "other": "off"
+        }
     },
     "[asciidoc]": {
         "editor.wordWrap": "wordWrapColumn",
@@ -72,7 +75,8 @@
     "python.jediEnabled": false,
     "todo-tree.tree.showScanModeButton": false,
     "[javascript]": {
-        "editor.tabSize": 2
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     },
     "[xml]": {
         "editor.tabSize": 2
@@ -91,7 +95,7 @@
         "*.css": "postcss",
         "*.adoc": "markdown"
     },
-    "python.languageServer": "Pylance",
+    "python.languageServer": "Jedi",
     "python.analysis.disabled": [
         "unresolved-import"
     ],
@@ -105,6 +109,5 @@
         "default": "right",
         "jupyter-notebook": "left"
     },
-    "editor.bracketPairColorization.enabled": true,
-    "window.zoomLevel": -1
+    "editor.bracketPairColorization.enabled": true
 }

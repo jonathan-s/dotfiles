@@ -35,6 +35,7 @@ def install_vscode(c):
 
     c.run('cp {} {}'.format(keybindings, keybindings_dest))
     c.run('cp {} {}'.format(settings, settings_dest))
+    # TODO copy all snippets from the snippets folder.
     c.run('source {}/vscode.sh'.format(vscode_dir))
 
 
