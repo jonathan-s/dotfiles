@@ -1,18 +1,15 @@
 [alias]
-    # View abbreviated SHA, description, and history graph of the latest 20 commits.
-    l = log --pretty=oneline -n 20 --graph --abbrev-commit
-
-    # View the current working tree status using the short format.
-    st = status -s
-
     # List aliases.
     aliases = config --get-regexp alias
 
     # Stage all changes one by one
-    ap = add -p
+    add = add -p
 
     # Amend the currently staged files to the latest commit.
     amend = commit --amend --reuse-message=HEAD
+
+    # Checkout a given branch and creating if necessary
+    br = checkout -b
 
     # Show the diff between the latest commit and the current state.
     d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
@@ -27,9 +24,11 @@
     # Clone a repository including all submodules.
     c = clone --recursive
 
+    # checkout shortcut.
     ch = checkout
 
-    cp = cherry-pick
+    # Cherry pick a commit
+    che = cherry-pick
 
     cm = commit -m
 
@@ -45,8 +44,14 @@
     # Get the current branch
     current-branch = !git rev-parse --abbrev-ref HEAD
 
+    # List contributors with number of commits.
+    contributors = shortlog --summary --numbered
+
     # Switch to a branch, creating it if necessary.
     go = "!f() { git checkout -b \"$1\" 2> /dev/null || git checkout \"$1\"; }; f"
+
+    # View abbreviated SHA, description, and history graph of the latest 20 commits.
+    l = log --pretty=oneline -n 20 --graph --abbrev-commit
 
     # Show verbose output about tags, branches or remotes
     tags = tag -l
@@ -81,8 +86,8 @@
     # Remove the old tag with this name and tag the latest commit with it.
     retag = "!r() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; r"
 
-    # List contributors with number of commits.
-    contributors = shortlog --summary --numbered
+    # View the current working tree status using the short format.
+    st = status
 
     # Show the user email for the current repository.
     whoami = config user.email
@@ -168,6 +173,11 @@
 
 [pull]
     rebase = true
+
+[rebase]
+    # Make it work better with stacked PRs
+    # https://adamj.eu/tech/2022/10/15/how-to-rebase-stacked-git-branches/
+    updateRefs = true
 
 # URL shorthands
 
