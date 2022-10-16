@@ -3,7 +3,7 @@
     aliases = config --get-regexp alias
 
     # Stage all changes one by one
-    add = add -p
+    ap = !"git add -p ."
 
     # Amend the currently staged files to the latest commit.
     amend = commit --amend --reuse-message=HEAD

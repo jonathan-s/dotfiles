@@ -18,14 +18,13 @@ This repo has added the following extra things.
 The following components exist
 
 - ./brew.sh - Installs all brew packages. Make sure that you've got brew installed first!
-- ./setup.sh - Moves application specific settings to the correct place.
+- ./setup.sh - Sets up python environment etc so that you can run invoke.
 - ./macos - Run this if it's on a clean install.
-- ./bootstrap.sh - Move all configuration files to home.
 
 Once you've run setup.sh you can also run the python invoke commands.
 
-- inv setup
-- inv bootstrap
+- inv setup - Copy all application specific configuration files to correct place
+- inv bootstrap - Copy all configuration files to home.
 - inv backup - will backup the application configurations files to dotfiles.
 
 
@@ -40,13 +39,8 @@ git clone https://github.com/jonathan-s/dotfiles.git && cd dotfiles && source bo
 To update, `cd` into your local `dotfiles` repository and then:
 
 ```bash
-source bootstrap.sh
-```
-
-Alternatively, to update while avoiding the confirmation prompt:
-
-```bash
-set -- -f; source bootstrap.sh
+source setup.sh
+inv bootstrap
 ```
 
 ### Specify the `$PATH`

@@ -76,6 +76,10 @@ def spectacle(c, backup=False):
 @task
 def iterm2(c, backup=False):
     """Install or backup preferences for iterm2"""
+
+    # use plutil to convert to xml for better readability of changes
+    # plutil -convert xml1 ExampleBinary.plist
+    # plutil -convert binary1 Example.plist
     dest = '~/Library/Preferences/com.googlecode.iterm2.plist'
     src = INIT_DIR / 'com.googlecode.iterm2.plist'
     if backup:

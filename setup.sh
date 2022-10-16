@@ -9,5 +9,8 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+# Install oh-my-zsh to be able to use plugins etc.
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
 # Setup all preferences
 inv setup

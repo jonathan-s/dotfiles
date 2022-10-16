@@ -59,6 +59,3 @@ setopt CORRECT_ALL
 
 # Allow [ or ] whereever you want
 unsetopt nomatch
-
-# A basic prompt that showing two directories.
-export PROMPT='Elise %F{blue}%2~%f: '
