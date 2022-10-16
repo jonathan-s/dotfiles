@@ -38,10 +38,22 @@ def backup_vscode(c):
     """
     Copy settings and extensions from VS Code to dotfiles
     """
+    result = c.run('code --list-extensions | xargs -L 1 echo code --install-extension')
+    with (Path.cwd() / 'init' / 'vscode' / 'vscode.sh').open(mode='w') as f:
+        f.write(result.stdout)
     # "~/Library/Application Support/Code/User/settings.json and keybindings.json
-    # code --list-extensions | xargs -L 1 echo code --install-extension
     # don't forget the snippets folder...!
-    pass
+
+
+@task
+def uninstall_vscode_extensions(c):
+    """
+    Uninstall all vscode extensions
+    """
+    result = c.run('code --list-extensions | xargs -L 1 echo code --uninstall-extension')
+    extensions = result.stdout.split('\n')
+    for extension in extensions:
+        c.run(extension)
 
 
 @task
