@@ -9,7 +9,7 @@
     amend = commit --amend --reuse-message=HEAD
 
     # Checkout a given branch and creating if necessary
-    br = checkout -b
+    br = branch
 
     # Show the diff between the latest commit and the current state.
     d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
@@ -26,6 +26,9 @@
 
     # checkout shortcut.
     ch = checkout
+
+    # Checkout new branch
+    chb = checkout -b
 
     # Cherry pick a commit
     che = cherry-pick
