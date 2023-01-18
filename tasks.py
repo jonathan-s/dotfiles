@@ -4,6 +4,7 @@
 
 from invoke import task
 from pathlib import Path
+from termcolor import cprint
 
 APP_SUPPORT = Path('~/Library/Application\ Support/')
 VS_CODE_APPLICATION = '~/Library/Application\ Support/Code/User/{}'
@@ -60,7 +61,10 @@ def uninstall_vscode_extensions(c):
 def install_vscode(c):
     """
     Install the VS code settings to the system from dotfiles
+
+    NOTE: Will fail if vs code hasn't been run before.
     """
+    cprint('Installing VS code extensions', 'green')
     vscode_dir = INIT_DIR / 'vscode'
     keybindings = vscode_dir / 'keybindings.json'
     settings = vscode_dir / 'settings.json'
@@ -76,12 +80,17 @@ def install_vscode(c):
 
 @task
 def spectacle(c, backup=False):
+    """
+    NOTE: Will fail if spectacle hasn't been run before.
+    """
     shortcuts_dest = APP_SUPPORT / 'Spectacle' / 'Shortcuts.json'
     shortcuts_src = INIT_DIR / 'spectacle.json'
 
     if backup:
         c.run('cp {} {}'.format(shortcuts_dest, shortcuts_src))
         return
+
+    cprint('Set up settings for spectacle', 'green')
     c.run('cp {} {}'.format(shortcuts_src, shortcuts_dest))
 
 
@@ -97,6 +106,8 @@ def iterm2(c, backup=False):
     if backup:
         c.run(f'cp {dest} {src}')
         return
+
+    cprint('Set up settings for iterm2', 'green')
     c.run(f'cp {src} {dest}')
     c.run('defaults read com.googlecode.iterm2')
 
@@ -109,6 +120,7 @@ def karabiner(c, backup=False):
     if backup:
         c.run(f'cp {dest}/karabiner.json {src}')
         return
+    cprint('Set up settings for karabiner', 'green')
     c.run(f'mkdir -p {dest} && cp {src} {dest}/karabiner.json')
 
 
@@ -117,6 +129,7 @@ def keyboard(c):
     """Copy keyboard layout to the correct place"""
     src = INIT_DIR / 'Swedish-Svorak.keylayout'
     dest = '~/Library/Keyboard\ Layouts/Swedish-Svorak.keylayout'
+    cprint('Install keyboard layout', 'green')
     c.run(f'cp {src} {dest}')
 
 
@@ -160,4 +173,9 @@ def bootstrap(c):
         --exclude "requirements.txt" \
         -avh --no-perms . ~;
     """)
+
+    cprint("Copying dotfiles to HOME", "green")
     c.run("source ~/.zprofile;", shell="/bin/zsh")
+
+    cprint("MacOS specific settings", "green")
+    c.run("source ~/.macos;", shell="/bin/zsh")

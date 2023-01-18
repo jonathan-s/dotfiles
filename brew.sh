@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
 
+# Ask for sudo password
+sudo -v
+
+# Some brew env variables we want to use for this script.
+export HOMEBREW_DISPLAY_INSTALL_TIMES=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+export HOMEBREW_AUTOREMOVE=1
+
 # Install command-line tools using Homebrew.
 sudo softwareupdate --install-rosetta --agree-to-license
+
+# Install brew.
+curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 
 # Make sure we’re using the latest Homebrew.
 brew update
@@ -119,6 +131,7 @@ brew install shortcat
 brew install --cask lynx
 brew install --cask firefox
 brew tap homebrew/cask-versions
+brew install --cask 1password6
 brew install --cask firefox-developer-edition
 brew install --cask alfred
 brew install --cask bitwarden
@@ -140,10 +153,10 @@ brew install --cask insomnia
 brew install --cask iterm2
 # Open-source screen recorder built with web technology
 brew install --cask kap
-# Keyboard customizer
 brew install --cask disk-inventory-x
 brew install --cask docker
 brew install --cask discord
+# Keyboard customizer
 brew install --cask karabiner-elements
 brew install --cask keybase
 brew install --cask libreoffice
@@ -156,7 +169,6 @@ brew install --cask signal
 brew install --cask skim
 brew install --cask slack
 brew install --cask little-snitch
-brew install --cask spectacle
 brew install --cask steam
 brew install --cask telegram
 brew install --cask transmission
