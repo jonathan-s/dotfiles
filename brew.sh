@@ -113,6 +113,8 @@ brew install ripgrep
 brew install tree
 brew install yarn
 
+# command palatte for all applications
+brew install shortcat
 # Cross platform presentation and productivity app
 brew install --cask lynx
 brew install --cask firefox

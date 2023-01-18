@@ -1,0 +1,2 @@
+- settings for obsidian?
+- settings for firefox?
