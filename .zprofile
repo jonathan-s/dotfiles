@@ -9,6 +9,10 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 export HOMEBREW_AUTOREMOVE=1
 
+# https://apple.stackexchange.com/questions/75989/why-does-osx-add-extra-filename-when-i-tar-a-directory
+# Macos may add strange files when tarring.
+export COPYFILE_DISABLE=1
+
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
