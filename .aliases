@@ -16,6 +16,8 @@ alias p="cd ~/projects"
 alias g="git"
 alias st="git status"
 alias cm="git cm"
+alias ch="git ch"
+alias br="git br"
 alias ap="git ap"
 
 # Detect which `ls` flavor is in use
