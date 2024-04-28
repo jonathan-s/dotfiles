@@ -5,9 +5,10 @@
 from invoke import task
 from pathlib import Path
 from termcolor import cprint
+import shutil
 
-APP_SUPPORT = Path('~/Library/Application\ Support/')
-VS_CODE_APPLICATION = '~/Library/Application\ Support/Code/User/{}'
+APP_SUPPORT = Path.home() / Path('Library/Application Support/')
+VS_CODE_APPLICATION = Path.home() / Path('Library/Application Support/Code/User')
 INIT_DIR = Path.cwd() / 'init'
 
 
@@ -42,8 +43,17 @@ def backup_vscode(c):
     result = c.run('code --list-extensions | xargs -L 1 echo code --install-extension')
     with (Path.cwd() / 'init' / 'vscode' / 'vscode.sh').open(mode='w') as f:
         f.write(result.stdout)
-    # "~/Library/Application Support/Code/User/settings.json and keybindings.json
-    # don't forget the snippets folder...!
+
+    src_keybindings = VS_CODE_APPLICATION / 'keybindings.json'
+    dst_keybindings = INIT_DIR / 'vscode' / 'keybindings.json'
+    shutil.copyfile(src_keybindings, dst_keybindings)
+
+    src_settings = VS_CODE_APPLICATION / 'settings.json'
+    dst_settings = INIT_DIR / 'vscode' / 'settings.json'
+    shutil.copyfile(src_settings, dst_settings)
+
+    shutil.rmtree(INIT_DIR / 'vscode' / 'snippets')
+    shutil.copytree(VS_CODE_APPLICATION / 'snippets', INIT_DIR / 'snippets')
 
 
 @task
@@ -69,12 +79,14 @@ def install_vscode(c):
     keybindings = vscode_dir / 'keybindings.json'
     settings = vscode_dir / 'settings.json'
 
-    settings_dest = VS_CODE_APPLICATION.format('settings.json')
-    keybindings_dest = VS_CODE_APPLICATION.format('keybindings.json')
+    settings_dest = VS_CODE_APPLICATION / 'settings.json'
+    keybindings_dest = VS_CODE_APPLICATION / 'keybindings.json'
 
     c.run('cp {} {}'.format(keybindings, keybindings_dest))
     c.run('cp {} {}'.format(settings, settings_dest))
     # TODO copy all snippets from the snippets folder.
+
+    # install the vscode extensions
     c.run('source {}/vscode.sh'.format(vscode_dir))
 
 

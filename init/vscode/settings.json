@@ -1,5 +1,4 @@
 {
-    "python.linting.flake8Enabled": true,
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
         "**/.git": true,
@@ -11,30 +10,10 @@
         "**/node_modules/": true,
         "**/__pycache__": true
     },
-    "sync.gist": "67e899090b1644a4f94b97d36e321191",
-    "sync.autoDownload": false,
-    "sync.autoUpload": false,
-    "sync.forceDownload": false,
-    "python.linting.flake8Args": [
-        "--max-line-length=200"
-    ],
     "files.insertFinalNewline": true,
     "editor.renderWhitespace": "all",
-    "sync.quietSync": false,
-    "jshint.options": {
-        "multistr": true,
-        "esnext": true
-    },
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": false,
     "editor.multiCursorModifier": "ctrlCmd",
     "editor.snippetSuggestions": "top",
-    "python.linting.ignorePatterns": [
-        ".vscode/*.py",
-        "**/site-packages/**/*.py",
-        ".env"
-    ],
-    "python.linting.lintOnSave": true,
     "editor.rulers": [
         80,
         100
@@ -42,16 +21,13 @@
     "editor.fontSize": 12,
     "editor.tabSize": 4,
     "editor.formatOnType": false,
-    "editor.detectIndentation": false,
     "editor.formatOnPaste": false,
     "editor.formatOnSave": false,
-    "jshint.enable": false,
     "colorize.colorized_variables": [
         "CSS",
         "SASS"
     ],
     "editor.renderControlCharacters": true,
-    "python.formatting.provider": "none",
     "editor.wordWrapColumn": 80,
     "[markdown]": {
         "editor.wordWrap": "wordWrapColumn",
@@ -64,19 +40,19 @@
     "[asciidoc]": {
         "editor.wordWrap": "wordWrapColumn",
     },
-    "workbench.editor.showTabs": false,
+    "workbench.editor.showTabs": "single",
     "workbench.colorTheme": "Brogrammer",
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features",
         "editor.tabSize": 2
     },
-    "editor.suggestSelection": "first",
-    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "python.jediEnabled": false,
-    "todo-tree.tree.showScanModeButton": false,
+    "editor.suggestSelection": "recentlyUsedByPrefix",
     "[javascript]": {
         "editor.tabSize": 2,
         "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[scss]": {
+        "editor.tabSize": 2,
     },
     "[xml]": {
         "editor.tabSize": 2
@@ -96,10 +72,6 @@
         "*.adoc": "markdown"
     },
     "python.languageServer": "Jedi",
-    "python.analysis.disabled": [
-        "unresolved-import"
-    ],
-    "python.venvPath": "~/.cache/pypoetry/virtualenvs",
     "python.analysis.autoImportCompletions": false,
     "workbench.editorAssociations": {
         "*.ipynb": "jupyter-notebook"
@@ -109,5 +81,24 @@
         "default": "right",
         "jupyter-notebook": "left"
     },
-    "editor.bracketPairColorization.enabled": true
+    "editor.bracketPairColorization.enabled": true,
+    "editor.definitionLinkOpensInPeek": true,
+    "flake8.args": [
+        "--ignore=E501,W503"
+    ],
+    "editor.indentSize": "tabSize",
+    "advancedNewFile.exclude": {
+        "target": true,
+        "venv": true
+    },
+    "rust-analyzer.semanticHighlighting.operator.specialization.enable": true,
+    "rust-analyzer.semanticHighlighting.punctuation.enable": true,
+    "rust-analyzer.semanticHighlighting.punctuation.separate.macro.bang": true,
+    "rust-analyzer.semanticHighlighting.punctuation.specialization.enable": true,
+    "editor.inlayHints.enabled": "offUnlessPressed",
+    "editor.tabCompletion": "on",
+    "search.exclude": {
+        "**/target": true
+    },
+    "terminal.integrated.defaultProfile.osx": "zsh",
 }

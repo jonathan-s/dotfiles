@@ -1,6 +1,6 @@
 [
     {
-        "key": "alt+cmd+t",
+        "key": "shift+cmd+t",
         "command": "workbench.action.terminal.toggleTerminal"
     },
     {
@@ -46,7 +46,7 @@
         "when": "editorTextFocus"
     },
     {
-        "key": "ctrl+shift+[IntlBackslash]",
+        "key": "ctrl+shift+[Backquote]",
         "command": "editor.action.revealDefinition",
         "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
     },
@@ -66,5 +66,189 @@
     {
         "key": "shift+cmd+n",
         "command": "explorer.newFolder"
+    },
+    {
+        "key": "alt+g",
+        "command": "workbench.action.toggleEditorWidths"
+    },
+    {
+        "key": "ctrl+alt+t",
+        "command": "workbench.action.quickOpenTerm"
+    },
+    {
+        "key": "cmd+t",
+        "command": "workbench.action.terminal.focus"
+    },
+    {
+        "key": "cmd+t",
+        "command": "-workbench.action.quickOpen"
+    },
+    {
+        "key": "cmd+k left",
+        "command": "workbench.action.focusLeftGroup"
+    },
+    {
+        "key": "cmd+k cmd+left",
+        "command": "-workbench.action.focusLeftGroup"
+    },
+    {
+        "key": "cmd+k right",
+        "command": "workbench.action.focusRightGroup"
+    },
+    {
+        "key": "cmd+k cmd+right",
+        "command": "-workbench.action.focusRightGroup"
+    },
+    {
+        "key": "cmd+k c",
+        "command": "workbench.action.evenEditorWidths"
+    },
+    {
+        "key": "cmd+k m",
+        "command": "workbench.action.minimizeOtherEditors"
+    },
+    {
+        "key": "cmd+k s",
+        "command": "workbench.action.toggleSidebarVisibility"
+    },
+    {
+        "key": "cmd+b",
+        "command": "-workbench.action.toggleSidebarVisibility"
+    },
+    {
+        "key": "shift+cmd+t",
+        "command": "-workbench.action.reopenClosedEditor"
+    },
+    {
+        "key": "shift+cmd+[KeyE]",
+        "command": "workbench.action.focusActiveEditorGroup"
+    },
+    {
+        "key": "alt+cmd+t",
+        "command": "-workbench.action.closeOtherEditors"
+    },
+    {
+        "key": "alt+cmd+t",
+        "command": "workbench.action.terminal.new"
+    },
+    {
+        "key": "alt+cmd+up",
+        "command": "workbench.action.terminal.focusPrevious",
+        "when": "terminalFocus && terminalHasBeenCreated && !terminalEditorFocus || terminalFocus && terminalProcessSupported && !terminalEditorFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+cmd+8",
+        "command": "-workbench.action.terminal.focusPrevious",
+        "when": "terminalFocus && terminalHasBeenCreated && !terminalEditorFocus || terminalFocus && terminalProcessSupported && !terminalEditorFocus"
+    },
+    {
+        "key": "alt+cmd+up",
+        "command": "-workbench.action.terminal.focusPreviousPane",
+        "when": "terminalFocus && terminalHasBeenCreated || terminalFocus && terminalProcessSupported"
+    },
+    {
+        "key": "alt+cmd+down",
+        "command": "-editor.action.goToDeclaration"
+    },
+    {
+        "key": "alt+cmd+down",
+        "command": "-workbench.action.terminal.focusNextPane",
+        "when": "terminalFocus && terminalHasBeenCreated || terminalFocus && terminalProcessSupported"
+    },
+    {
+        "key": "alt+cmd+down",
+        "command": "workbench.action.terminal.focusNext",
+        "when": "terminalFocus && terminalHasBeenCreated && !terminalEditorFocus || terminalFocus && terminalProcessSupported && !terminalEditorFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+cmd+9",
+        "command": "-workbench.action.terminal.focusNext",
+        "when": "terminalFocus && terminalHasBeenCreated && !terminalEditorFocus || terminalFocus && terminalProcessSupported && !terminalEditorFocus"
+    },
+    {
+        "key": "cmd+w",
+        "command": "workbench.action.closeWindow",
+        "when": "!editorIsOpen && !multipleEditorGroups && !terminalFocus"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeWindow",
+        "when": "!editorIsOpen && !multipleEditorGroups"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeActiveEditor"
+    },
+    {
+        "key": "cmd+w",
+        "command": "workbench.action.closeGroup",
+        "when": "activeEditorGroupEmpty && multipleEditorGroups"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.closeGroup",
+        "when": "activeEditorGroupEmpty && multipleEditorGroups"
+    },
+    {
+        "key": "cmd+w",
+        "command": "workbench.action.closeActiveEditor",
+        "when": "!terminalFocusInAny"
+    },
+    {
+        "key": "cmd+k cmd+down",
+        "command": "-workbench.action.closeActiveEditor"
+    },
+    {
+        "key": "cmd+w",
+        "command": "-workbench.action.terminal.killEditor",
+        "when": "terminalEditorFocus && terminalFocus && terminalHasBeenCreated || terminalEditorFocus && terminalFocus && terminalProcessSupported"
+    },
+    {
+        "key": "delete",
+        "command": "-workbench.action.terminal.killActiveTab",
+        "when": "terminalHasBeenCreated && terminalTabsFocus || terminalIsOpen && terminalTabsFocus || terminalProcessSupported && terminalTabsFocus"
+    },
+    {
+        "key": "cmd+backspace",
+        "command": "-workbench.action.terminal.killActiveTab",
+        "when": "terminalHasBeenCreated && terminalTabsFocus || terminalIsOpen && terminalTabsFocus || terminalProcessSupported && terminalTabsFocus"
+    },
+    {
+        "key": "cmd+backspace",
+        "command": "workbench.action.terminal.kill",
+        "when": "terminalFocus"
+    },
+    {
+        "key": "ctrl+alt",
+        "command": "inlayHints.startReadingLineWithHint"
+    },
+    {
+        "key": "ctrl+shift+a",
+        "command": "-cursorLineStartSelect",
+        "when": "textInputFocus"
+    },
+    {
+        "key": "ctrl+shift+a",
+        "command": "editor.action.goToTypeDefinition"
+    },
+    {
+        "key": "ctrl+shift+c",
+        "command": "editor.toggleFold",
+        "when": "editorTextFocus && foldingEnabled"
+    },
+    {
+        "key": "cmd+k cmd+l",
+        "command": "-editor.toggleFold",
+        "when": "editorTextFocus && foldingEnabled"
+    },
+    {
+        "key": "ctrl+shift+alt+c",
+        "command": "editor.foldAll",
+        "when": "editorTextFocus && foldingEnabled"
+    },
+    {
+        "key": "cmd+k cmd+0",
+        "command": "-editor.foldAll",
+        "when": "editorTextFocus && foldingEnabled"
     }
 ]
