@@ -12,6 +12,13 @@ VS_CODE_APPLICATION = Path.home() / Path('Library/Application Support/Code/User'
 INIT_DIR = Path.cwd() / 'init'
 
 
+"""
+- Copy rectangle settings
+- remove karabiner and spectacle
+- ?
+"""
+
+
 @task
 def brew(c):
     installed = c.run('brew list --cask -1')
@@ -113,13 +120,14 @@ def iterm2(c, backup=False):
     # use plutil to convert to xml for better readability of changes
     # plutil -convert xml1 ExampleBinary.plist
     # plutil -convert binary1 Example.plist
-    dest = '~/Library/Preferences/com.googlecode.iterm2.plist'
+    dest = Path.home() / Path('Library/Preferences/com.googlecode.iterm2.plist')
     src = INIT_DIR / 'com.googlecode.iterm2.plist'
     if backup:
         c.run(f'cp {dest} {src}')
         return
 
     cprint('Set up settings for iterm2', 'green')
+    # TODO use shutil instead.
     c.run(f'cp {src} {dest}')
     c.run('defaults read com.googlecode.iterm2')
 

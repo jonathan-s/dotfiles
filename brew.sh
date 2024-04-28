@@ -125,14 +125,12 @@ brew install ripgrep
 brew install tree
 brew install yarn
 
+brew tap homebrew/cask-versions
+
 # command palatte for all applications
 brew install shortcat
-# Cross platform presentation and productivity app
-brew install --cask lynx
-brew install --cask firefox
-brew tap homebrew/cask-versions
 brew install --cask 1password6
-brew install --cask firefox-developer-edition
+brew install --cask anki
 brew install --cask alfred
 brew install --cask bitwarden
 # Screen color temperature controller
@@ -141,11 +139,19 @@ brew install --cask flux
 brew install --cask spectacle
 # E-books management software
 brew install --cask calibre
+# combining pdfs
 brew install --cask combine-pdfs
+# excellent backup utility
 brew install --cask carbon-copy-cloner
+brew install --cask dbeaver-community
 brew install --cask discord
 brew install --cask dropbox
+# visualize what takes most data
+brew install --cask disk-inventory-x
+brew install --cask docker
 brew install --cask exodus
+brew install --cask firefox
+brew install --cask firefox-developer-edition
 # Open-source video transcoder
 brew install --cask handbrake
 # HTTP and GraphQL Client
@@ -153,22 +159,25 @@ brew install --cask insomnia
 brew install --cask iterm2
 # Open-source screen recorder built with web technology
 brew install --cask kap
-brew install --cask disk-inventory-x
-brew install --cask docker
-brew install --cask discord
-# Keyboard customizer
-brew install --cask karabiner-elements
+# Cross platform presentation and productivity app
 brew install --cask keybase
+brew install --cask lynx
 brew install --cask libreoffice
+brew install --cask little-snitch
 brew install --cask mullvadvpn
 brew install --cask obsidian
 brew install --cask postgres-unofficial
 brew install --cask postico
+brew install --cask protonvpn
+brew install --cask proton-mail
+brew install --cask proton-mail-bridge
+brew install --cask proton-drive
+brew install --cask rectangle
 brew install --cask selfcontrol
 brew install --cask signal
+# simple pdf reader
 brew install --cask skim
 brew install --cask slack
-brew install --cask little-snitch
 brew install --cask steam
 brew install --cask telegram
 brew install --cask transmission
@@ -176,7 +185,7 @@ brew install --cask tunnelblick
 brew install --cask visual-studio-code
 brew install --cask vlc
 brew install --cask webtorrent
-brew install --cask zoom
+brew install --cask xquartz
 
 # Remove outdated versions from the cellar.
 brew cleanup
