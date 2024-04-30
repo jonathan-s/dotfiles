@@ -10,6 +10,11 @@ function cdf() { # short for `cdfinder`
 	cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
 }
 
+function pip_uninstall() {
+    # uninstall all except, things not possible to uninstall.
+    pip freeze | cut -d "@" -f1 | xargs pip uninstall -y
+}
+
 # Create a .tar.gz archive, using `zopfli`, `pigz` or `gzip` for compression
 function targz() {
 	local tmpFile="${@%/}.tar";
