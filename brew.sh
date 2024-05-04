@@ -112,6 +112,9 @@ brew install mitmproxy
 brew install mas
 mas install 1256503523            # System Indicators
 
+# another filewatch utility cross-compat.
+brew install watchman
+
 # node version manager
 brew node
 brew install nvm
