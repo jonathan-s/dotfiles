@@ -96,6 +96,8 @@ brew install dep
 brew install direnv
 brew install docker-machine
 brew install ffmpeg
+# filewatching utility
+brew install fswatch
 brew install gcutil
 brew install geckodriver
 # Graph visualization software from AT&T and Bell Labs
