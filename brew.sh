@@ -45,8 +45,6 @@ if ! fgrep -q "${BREW_PREFIX}/bin/bash" /etc/shells; then
   chsh -s "${BREW_PREFIX}/bin/bash";
 fi;
 
-# Install `wget` with IRI support.
-brew install wget
 
 # Install GnuPG to enable PGP-signing commits.
 brew install gnupg
@@ -104,10 +102,19 @@ brew install geckodriver
 brew install graphviz
 brew install haproxy
 brew install heroku/brew/heroku
+
+# Cli tools
+brew install glances
 brew install htop
 brew install httpie
 brew install httrack
+brew install pyenv
+brew install pyenv-virtualenv
+brew install ripgrep
 brew install mitmproxy
+brew install tree
+brew install wget
+
 # app tools like appstore
 brew install mas
 mas install 1256503523            # System Indicators
@@ -123,12 +130,8 @@ brew install pandoc
 
 # Data loading tool for PostgreSQL
 brew install pgloader
-brew install pyenv
-brew install pyenv-virtualenv
 brew install rabbitmq
 brew install redis
-brew install ripgrep
-brew install tree
 brew install yarn
 
 brew tap homebrew/cask-versions
@@ -192,7 +195,6 @@ brew install --cask slack
 brew install --cask steam
 brew install --cask telegram
 brew install --cask transmission
-brew install --cask tunnelblick
 brew install --cask visual-studio-code
 brew install --cask vlc
 brew install --cask webtorrent
