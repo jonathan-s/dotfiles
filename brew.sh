@@ -136,7 +136,10 @@ brew tap apple/apple http://github.com/apple/homebrew-apple
 # Gaming > https://www.applegamingwiki.com/wiki/Game_Porting_Toolkit
 brew install apple/apple/game-porting-toolkit
 
-# command palatte for all applications
+brew tap dteoh/sqa
+brew install --cask slowquitapps
+
+# command palette for all applications
 brew install shortcat
 brew install --cask 1password6
 brew install --cask anki
