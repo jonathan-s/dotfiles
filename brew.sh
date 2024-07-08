@@ -120,6 +120,7 @@ brew node
 brew install nvm
 mkdir -p ~/.nvm
 brew install pandoc
+
 # Data loading tool for PostgreSQL
 brew install pgloader
 brew install pyenv
@@ -131,6 +132,9 @@ brew install tree
 brew install yarn
 
 brew tap homebrew/cask-versions
+brew tap apple/apple http://github.com/apple/homebrew-apple
+# Gaming > https://www.applegamingwiki.com/wiki/Game_Porting_Toolkit
+brew install apple/apple/game-porting-toolkit
 
 # command palatte for all applications
 brew install shortcat
@@ -140,9 +144,7 @@ brew install --cask alfred
 brew install --cask bitwarden
 # Screen color temperature controller
 brew install --cask flux
-# Move and resize windows with ease
-brew install --cask spectacle
-# E-books management software
+# E-books management software, see calibre-web
 brew install --cask calibre
 # combining pdfs
 brew install --cask combine-pdfs
@@ -167,16 +169,17 @@ brew install --cask kap
 # Cross platform presentation and productivity app
 brew install --cask keybase
 brew install --cask lynx
-brew install --cask libreoffice
 brew install --cask little-snitch
 brew install --cask mullvadvpn
 brew install --cask obsidian
+brew install --cask onlyoffice
 brew install --cask postgres-unofficial
 brew install --cask postico
 brew install --cask protonvpn
 brew install --cask proton-mail
 brew install --cask proton-mail-bridge
 brew install --cask proton-drive
+brew install --cask proton-pass
 brew install --cask rectangle
 brew install --cask selfcontrol
 brew install --cask signal
