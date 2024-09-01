@@ -81,6 +81,11 @@ brew install ssh-copy-id
 # New zlib (gzip, deflate) compatible compressor
 brew install zopfli
 
+# Needed for bindfs afaik
+brew install macfuse
+# Allows you to do similar stuff as mount --bind using bindfs. 
+brew install gromgit/fuse/bindfs-mac
+
 brew install ansible
 brew install asciidoctor
 # Shell extension to jump to frequently used directories
