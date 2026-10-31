@@ -12,9 +12,10 @@
 # Stamps live in ~/.cache/dotfiles/macos-defaults, so a converged machine does
 # nothing on ./bootstrap and a changed module re-applies exactly once.
 #
-# A module can declare two extra conventions:
-#   # stamp-include: <path>      asset that belongs in the module's change hash
-#   # expect-file: <src>|<dest>  copied file that --check compares against src
+# A module can declare three extra conventions:
+#   # stamp-skip: true          apply on every run (cheap, self-healing modules)
+#   # expect-file: <src>|<dest> --check compares a copied file with its source
+#   # expect-link: <dest>|<src> --check verifies dest is a symlink to src
 #
 # ./macos/repair.sh holds the expensive one-off fixes (Spotlight reindex,
 # Launch Services rebuild); they are never part of a normal apply.
@@ -88,6 +89,10 @@ module_names() {
 	done
 }
 
+resolve_path() {
+	CDPATH='' cd -- "$(dirname -- "$1")" 2> /dev/null && printf '%s/%s\n' "$(pwd)" "$(basename -- "$1")"
+}
+
 # Compare the simple, parseable writes in a module with the live preferences.
 # Anything the parser cannot model (arrays, dicts, -currentHost, sudo, PlistBuddy)
 # is skipped on purpose rather than reported as drift.
@@ -107,6 +112,22 @@ check_file() {
 		fi
 	done <<EOF
 $(sed -n 's/^# expect-file: *//p' "$file")
+EOF
+
+	# Symlinks that should point at a repo asset.
+	while IFS= read -r spec; do
+		[ -n "$spec" ] || continue
+		dest=$(printf '%s' "${spec%%|*}" | sed "s|\${HOME}|$HOME|g")
+		target=$(resolve_path "$dir/${spec#*|}")
+		if [ ! -L "$dest" ]; then
+			echo "drift: $name: $dest is not a symlink"
+			drift=$((drift + 1))
+		elif [ "$(readlink "$dest")" != "$target" ]; then
+			echo "drift: $name: $dest links elsewhere, want $target"
+			drift=$((drift + 1))
+		fi
+	done <<EOF
+$(sed -n 's/^# expect-link: *//p' "$file")
 EOF
 
 	set -f
@@ -148,20 +169,6 @@ $(grep -E '^defaults write [^ ]+ [^ ]+ -(bool|int|float|string) ' "$file" || tru
 EOF
 }
 
-stamp_sum() {
-	file=$1
-	dir=$(dirname "$file")
-	parts=$(shasum -a 256 "$file")
-	while IFS= read -r inc; do
-		[ -n "$inc" ] || continue
-		parts="$parts
-$(shasum -a 256 "$dir/$inc")"
-	done <<EOF
-$(sed -n 's/^# stamp-include: *//p' "$file")
-EOF
-	printf '%s\n' "$parts" | shasum -a 256 | awk '{print $1}'
-}
-
 apply_file() {
 	file=$1
 	name=$(basename "$file" .sh)
@@ -169,8 +176,9 @@ apply_file() {
 		return 0
 	fi
 	stamp="$stamp_dir/$name.sha"
-	sum=$(stamp_sum "$file")
-	if [ "$force_all" -eq 0 ] && [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
+	sum=$(shasum -a 256 "$file" | awk '{print $1}')
+	if [ "$force_all" -eq 0 ] && ! grep -q '^# stamp-skip: true' "$file" \
+		&& [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
 		skipped=$((skipped + 1))
 		return 0
 	fi
