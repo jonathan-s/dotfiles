@@ -1,0 +1,26 @@
+#!/bin/sh
+# Refuse to commit anything that looks like a credential.
+#
+# Installed through `core.hooksPath` by ./bootstrap. If a match is a false
+# positive, commit with `git commit --no-verify`.
+
+set -eu
+
+# .githooks is excluded so this pattern list cannot trip over itself.
+staged=$(git diff --cached -U0 -- . ':(exclude).githooks')
+
+patterns='ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|ghs_[A-Za-z0-9]{20,}|ghu_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|oauth_token[[:space:]]*:[[:space:]]*[[:graph:]]+'
+
+added=$(printf '%s\n' "$staged" | grep -E '^\+' | grep -vE '^\+\+\+' || true)
+
+if printf '%s\n' "$added" | grep -qE "$patterns"; then
+	cat >&2 <<'EOF'
+pre-commit: refusing to commit what looks like a credential.
+
+A staged line matches one of the token patterns in .githooks/pre-commit.
+Review the staged changes with `git diff --cached` before going further.
+
+If the match is a false positive, commit with `git commit --no-verify`.
+EOF
+	exit 1
+fi

@@ -45,6 +45,11 @@ backup="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 list=$(mktemp)
 trap 'rm -f "$list"' EXIT INT TERM
 
+# Versioned commit hooks, so the credential guard travels with the repo.
+if [ -d "$repo/.git" ] && [ -d "$repo/.githooks" ]; then
+	git -C "$repo" config core.hooksPath .githooks
+fi
+
 # Dotfiles only; .DS_Store files are noise and stay out of the way.
 find "$src" -name .DS_Store -prune -o -type f -print > "$list"
 
