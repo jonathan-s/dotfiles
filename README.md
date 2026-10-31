@@ -5,66 +5,75 @@
 This repo is indebted to https://github.com/mathiasbynens/dotfiles, as it is a fork from that repo.
 
 This repo has added the following extra things.
-- Python scripting to make it easier to add extra stuff if you want to avoid bash.
-- Support for .zsh instead of bash.
+
+- Support for zsh instead of bash.
+- `home/` mirrors `$HOME` and is symlinked into place, so there is only one copy of every config.
+- `./install` sets up a new machine; `Brewfile` lists the packages.
 - Svorak! (swedish dvorak)
 
 ## Installation
 
 **Warning:** If you want to give these dotfiles a try, you should first fork this repository, review the code, and remove things you don’t want or need. Don’t blindly use my settings unless you know what that entails. Use at your own risk!
 
-### Installation components
+### What is in here
 
-The following components exist
+| Path         | What it does                                                            |
+| ------------ | ----------------------------------------------------------------------- |
+| `bootstrap`  | symlinks `home/` into `$HOME` and prunes links whose file left the repo |
+| `install`    | cold-start orchestrator: packages, tools, links, login shell            |
+| `Brewfile`   | `brew bundle` manifest of formulae and casks                            |
+| `home/`      | everything that belongs in `$HOME`                                      |
+| `macos/`     | app-specific settings, not applied yet                                  |
+| `.githooks/` | pre-commit guard against committing credentials                         |
 
-- ./brew.sh - Installs all brew packages. Make sure that you've got brew installed first!
-- ./setup.sh - Sets up python environment etc so that you can run invoke.
-- ./bootstrap - Links everything in `home/` into `$HOME`. Use `./bootstrap --dry-run` first, `--verify` afterwards.
-- ./macos/defaults.sh - Run this if it's on a clean install.
+`./bootstrap --dry-run` shows what it would change; `--verify` reports links that drifted.
 
-Once you've run setup.sh you can also run the python invoke commands.
+### Installing a new machine
 
-- inv setup - Copy all application specific configuration files to correct place
-- inv backup - will backup the application configurations files to dotfiles.
-
-
-### Using Git and the bootstrap script
-
-You can clone the repository wherever you want. (I like to keep it in `~/projects/dotfiles`.) The bootstrapper script links the files from `home/` into your home folder.
+Install [Homebrew](https://brew.sh/) first, then:
 
 ```bash
-git clone https://github.com/jonathan-s/dotfiles.git && cd dotfiles && ./bootstrap
+git clone https://github.com/jonathan-s/dotfiles.git && cd dotfiles
+./install
 ```
 
-To update, `cd` into your local `dotfiles` repository and then:
+`./install` runs five stages (preflight, packages, tools, links, shell) and is safe to re-run.
+When you only want to know whether the machine still matches this repo:
+
+```bash
+./install --check          # changes nothing, exits non-zero on drift
+./install --only links     # run a single stage
+```
+
+### Updating
+
+`./bootstrap` is the fast path — it only relinks the dotfiles:
 
 ```bash
 git pull && ./bootstrap
 ```
 
-`./bootstrap` also points `core.hooksPath` at `.githooks/`, which holds a
-pre-commit hook that refuses to commit anything resembling a token or a
-private key.
+It also points `core.hooksPath` at `.githooks/`, which holds a pre-commit hook that refuses
+to commit anything resembling a token or a private key.
 
-### Specify the `$PATH`
+### Packages
 
-If `~/.path` exists, it will be sourced along with the other files, before any feature testing (such as [detecting which version of `ls` is being used](https://github.com/mathiasbynens/dotfiles/blob/aff769fd75225d8f2e481185a71d5e05b76002dc/.aliases#L21-L26)) takes place.
-
-Here’s an example `~/.path` file that adds `/usr/local/bin` to the `$PATH`:
+Packages are declared in `Brewfile`. After installing something new, capture it:
 
 ```bash
-export PATH="/usr/local/bin:$PATH"
+brew bundle dump --file=Brewfile --force
 ```
 
-### Install Homebrew formulae
+`./install --check` reports packages that are in the `Brewfile` but missing from the machine.
 
-When setting up a new Mac, you may want to install some common [Homebrew](https://brew.sh/) formulae (after installing Homebrew, of course):
+### Local overrides
+
+`~/.path` is sourced with the other dotfiles, so extra `$PATH` entries can live there without
+touching the repo:
 
 ```bash
-./brew.sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
-
-Some of the functionality of these dotfiles depends on formulae installed by `brew.sh`. If you don’t plan to run `brew.sh`, you should look carefully through the script and manually install any particularly important ones.
 
 ## Feedback
 
@@ -75,8 +84,8 @@ Suggestions/improvements
 ## Big thanks to the original Author
 
 | [![twitter/mathias](http://gravatar.com/avatar/24e08a9ea84deb17ae121074d0f17125?s=70)](http://twitter.com/mathias "Follow @mathias on Twitter") |
-|---|
-| [Mathias Bynens](https://mathiasbynens.be/) |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Mathias Bynens](https://mathiasbynens.be/)                                                                                                     |
 
 ## Thanks to…
 
