@@ -1,110 +1,89 @@
-#! /bin/zsh
+# Interactive zsh. Environment shared by all shells lives in .zshenv.
 
-source ~/.zprofile
-
-eval "$(pyenv init -)"
-
-
-# Settings for oh-my-zsh
-
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-
-# Path to your oh-my-zsh installation.
+# oh-my-zsh
 export ZSH="$HOME/.oh-my-zsh"
-
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="gnzh"
+plugins=(git dotenv)
+source "$ZSH/oh-my-zsh.sh"
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+# pyenv: shims, completions and the pyenv shell function.
+command -v pyenv > /dev/null 2>&1 && eval "$(pyenv init -)"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+# Ghostty shell integration (emits OSC 7 cwd so Cmd+click on file paths opens).
+if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then
+	source "$GHOSTTY_RESOURCES_DIR"/shell-integration/zsh/ghostty-integration
+fi
 
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+# nvm, which has to be sourced rather than exported.
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+# bun completions
+[ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
 
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
+# Reuse a single ssh-agent instead of spawning one per shell.
+# macOS normally provides one via launchd, which is why SSH_AUTH_SOCK is often
+# already set; the cache file covers shells started outside that session.
+_ssh_agent_alive() {
+	[[ -S ${SSH_AUTH_SOCK:-} ]] || return 1
+	# exit 1 means "agent is up but holds no keys", which is still alive.
+	ssh-add -l > /dev/null 2>&1
+	(( $? <= 1 ))
+}
 
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
+if ! _ssh_agent_alive; then
+	_ssh_agent_env="${XDG_CACHE_HOME:-$HOME/.cache}/ssh-agent.env"
+	[[ -r "$_ssh_agent_env" ]] && source "$_ssh_agent_env"
+	if ! _ssh_agent_alive; then
+		eval "$(ssh-agent -s)" > /dev/null
+		mkdir -p "${_ssh_agent_env:h}"
+		(umask 077; print -r -- "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK"$'\n'"export SSH_AGENT_PID=$SSH_AGENT_PID" >| "$_ssh_agent_env")
+	fi
+	unset _ssh_agent_env
+fi
+unfunction _ssh_agent_alive
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
+# User dotfiles, loaded last so they win over anything above.
+# * ~/.path can be used to extend `$PATH`.
+# * ~/.extra can be used for settings you don’t want to commit.
+for file in ~/.{path,exports,aliases,functions,extra}; do
+	[ -r "$file" ] && [ -f "$file" ] && source "$file"
+done
+unset file
 
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
+# Options
 
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+# Case-insensitive globbing (used in pathname expansion)
+setopt NO_CASE_GLOB
 
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
+# shell will automatically change directory even if you forget cd.
+setopt AUTO_CD
 
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+# Extended history of commands
+setopt EXTENDED_HISTORY
 
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
+# Share history across sessions
+setopt SHARE_HISTORY
 
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
+# append to history
+setopt APPEND_HISTORY
 
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+# adds commands as they are typed, not at shell exit
+setopt INC_APPEND_HISTORY
 
-source $ZSH/oh-my-zsh.sh
+# expire duplicates first
+# setopt HIST_EXPIRE_DUPS_FIRST
+# do not store duplications
+setopt HIST_IGNORE_DUPS
+# ignore duplicates when searching
+# setopt HIST_FIND_NO_DUPS
+# removes blank lines from history
+setopt HIST_REDUCE_BLANKS
 
-# User configuration
+# correct spelling mistakes in your commands
+setopt CORRECT
+setopt CORRECT_ALL
 
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# Allow [ or ] whereever you want
+unsetopt nomatch
