@@ -156,7 +156,6 @@ brew install --cask firefox-developer-edition
 brew install --cask handbrake
 # HTTP and GraphQL Client
 brew install --cask insomnia
-brew install --cask iterm2
 # Open-source screen recorder built with web technology
 brew install --cask kap
 # Cross platform presentation and productivity app

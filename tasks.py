@@ -114,25 +114,6 @@ def spectacle(c, backup=False):
 
 
 @task
-def iterm2(c, backup=False):
-    """Install or backup preferences for iterm2"""
-
-    # use plutil to convert to xml for better readability of changes
-    # plutil -convert xml1 ExampleBinary.plist
-    # plutil -convert binary1 Example.plist
-    dest = Path.home() / Path('Library/Preferences/com.googlecode.iterm2.plist')
-    src = INIT_DIR / 'com.googlecode.iterm2.plist'
-    if backup:
-        c.run(f'cp {dest} {src}')
-        return
-
-    cprint('Set up settings for iterm2', 'green')
-    # TODO use shutil instead.
-    c.run(f'cp {src} {dest}')
-    c.run('defaults read com.googlecode.iterm2')
-
-
-@task
 def karabiner(c, backup=False):
     src = INIT_DIR / 'karabiner.json'
     dest = '~/.config/karabiner'
@@ -157,7 +138,6 @@ def keyboard(c):
 def setup(c):
     """Copy all preferences to the correct location"""
     install_vscode(c)
-    iterm2(c)
     karabiner(c)
     keyboard(c)
     spectacle(c)
@@ -167,7 +147,6 @@ def setup(c):
 def backup(c):
     """Backup all files that has changed at some point"""
     backup_vscode(c)
-    iterm2(c, backup=True)
     karabiner(c, backup=True)
     spectacle(c, backup=True)
 
