@@ -1,0 +1,164 @@
+# Ghostty config — migrated from iTerm2 (Build 3.4.19, profile "Default")
+# iTerm2 -> Ghostty mapping decisions documented inline.
+#
+# ────────────────────────────────────────────────────────────────────────────
+# RESEARCH / OPEN FEATURE REQUEST
+# ────────────────────────────────────────────────────────────────────────────
+# WANT: clickable file:line in an editor (iTerm2 "Semantic History" parity).
+#   e.g. Cmd+click on  tests/moderation/test_models.py:131  should open VS Code
+#   at line 131, including RELATIVE paths (resolved against cwd via OSC 7).
+#
+# STATUS: NOT in Ghostty 1.3.1 (nor latest main) via config. Requires a patch.
+#
+# KEY REFERENCE: GitHub PR #13147
+#   Title: "config: make `link` settable, add capture-group templates for open"
+#   Author: @boyvinall — branch: clickable-links
+#   Adds `open:template` action with capture groups, enabling exactly this:
+#       link = ([\w./-]+\.\w+):(\d+)(?::(\d+))?=open:vscode://file\1:\2:\3
+#   (URL scheme style:  vscode://file\1:\2:\3  → file/line/column jump)
+#
+#   WHY NOT MERGED: auto-closed by ghostty-vouch bot because the author was
+#   NOT a vouched contributor — NOT rejected by maintainers. See
+#   CONTRIBUTING.md. The diff is complete and available on the branch above.
+#
+# RELATED ISSUES:
+#   #1972  "Clickable file paths"            (COMPLETED - base feature, no line)
+#   #11635 bare-filename clickable links via file-existence check (unmerged)
+#
+# SEARCH TERMS if re-visiting: semantic history | file:line | open:template |
+#   vscode://file | clickable file paths | link-url | cmd click editor line
+#
+# PLAN (if revisited): fetch PR #13147 head branch (clickable-links) → apply/
+#   rebase onto current main → build (needs Zig 0.14.1) → verify → install
+#   custom build. NOTE: becomes a fork to re-apply on each Ghostty update.
+#   https://github.com/ghostty-org/ghostty/pull/13147
+#
+# Discussion here
+# https://github.com/ghostty-org/ghostty/discussions/14141
+# https://github.com/ghostty-org/ghostty/discussions/11378
+# ────────────────────────────────────────────────────────────────────────────
+
+# --- Font (iTerm2: "FiraCodeNFM-Reg 11" = Fira Code Nerd Font Mono, 11pt) ---
+font-family = Fira Code Nerd Font Mono
+font-size = 12
+
+# --- Terminal type (iTerm2: xterm-256color) ---
+term = xterm-256color
+
+# NOTE: Ghostty shell integration is ALSO required for Cmd+click file-open to
+# work (it emits OSC 7 with the cwd, which Ghostty uses to resolve relative
+# paths). Ghostty's auto-injection wasn't loading on this machine, so the
+# following block was added to ~/.zshrc (source it there; setting it below
+# alone is NOT sufficient):
+#
+#   if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then
+#     source "$GHOSTTY_RESOURCES_DIR"/shell-integration/zsh/ghostty-integration
+#   fi
+
+# --- Shell (iTerm2 forced /bin/zsh; ghostty otherwise inherits the login
+#     shell, which is Homebrew bash on this machine) ---
+command = /bin/zsh
+
+# --- Colours (iTerm2 "Default"/Floraverse palette, converted to hex) ---
+background = #0E0D15
+foreground = #DBD1B9
+cursor-color = #BBBBBB
+cursor-text = #FFFFFF
+selection-background = #F3E0B8
+selection-foreground = #08002E
+
+# ANSI 16-colour palette (iTerm2 "Ansi 0..15 Color")
+palette = 0=#08002E
+palette = 1=#BB2727
+palette = 2=#BCDF37
+palette = 3=#FFA400
+palette = 4=#1D6DA1
+palette = 5=#B7077E
+palette = 6=#42A38C
+palette = 7=#F3E0B8
+palette = 8=#B189E3
+palette = 9=#D02063
+palette = 10=#B4CE59
+palette = 11=#FAC357
+palette = 12=#40A4CF
+palette = 13=#F12AAE
+palette = 14=#62CAA8
+palette = 15=#FFF5DB
+
+# --- Cursor (iTerm2 Cursor Type 2 = underline) ---
+cursor-style = underline
+
+# --- Split dividers: explicit color so splits are clearly visible
+#     (default auto-derives from the very dark bg, making them invisible) ---
+split-divider-color = #6b6b78
+
+# --- Unfocused split "grey film" (replicates iTerm2 DimInactiveSplitPanes) ---
+unfocused-split-fill = #777
+unfocused-split-opacity = 0.6
+
+# --- Keybindings ---
+# Split down on Cmd+Shift+S. NOTE: keybind values must have NO spaces
+# around the inner '=' (spaced form triggers an InvalidAction error).
+keybind = super+shift+s=new_split:down
+
+# Cycle tabs with Cmd+Option+Left/Right (Cmd+Option+Right = next, Left = prev).
+# super = Cmd on macOS; also works alongside macos-option-as-alt since the
+# Option is combined with Cmd (a GUI shortcut, not a bare alt press).
+keybind = super+option+right=next_tab
+keybind = super+option+left=previous_tab
+
+# While macos-option-as-alt=true (for pi word ops), restore UK/ISO special
+# characters on the number row so typing them works.
+# Option + 1..0 -> © @ £ $ ∞ § | [ ] ≈ ; Option+Shift + 1..0 -> shifted set.
+# NOTE: `text:` uses Zig string-literal syntax, so literal backslash = \\ .
+keybind = option+1=text:©
+keybind = option+2=text:@
+keybind = option+3=text:£
+keybind = option+4=text:$
+keybind = option+5=text:∞
+keybind = option+6=text:§
+keybind = option+7=text:|
+keybind = option+8=text:[
+keybind = option+9=text:]
+keybind = option+0=text:≈
+keybind = option+shift+1=text:¡
+keybind = option+shift+2=text:”
+keybind = option+shift+3=text:\\
+keybind = option+shift+4=text:¢
+keybind = option+shift+5=text:‰
+keybind = option+shift+6=text:¶
+keybind = option+shift+7=text:\\
+keybind = option+shift+8=text:{
+keybind = option+shift+9=text:}
+keybind = option+shift+0=text:≠
+
+# Option + the key right of Å (types ¨ unshifted, ^ shifted) -> ~.
+# NOTE: layout is Swedish - Pro, NOT British. The key generates U+00A8 (¨),
+# so bind the ¨ codepoint, not `]` (which is Option+9 on this layout).
+# Native Swedish Option+¨ = ~, recreated here since macos-option-as-alt
+# otherwise sends ESC+¨ to the shell instead.
+keybind = option+¨=text:~
+
+# --- Transparency & blur (iTerm2 Transparency 0.089, Blur on) ---
+# Ghostty has no blur-radius knob in 1.2.x; only the on/off blur toggle.
+background-opacity = 0.91
+background-blur = true
+
+# --- Scrollback (iTerm2: unlimited scrollback + alt-screen scrollback on) ---
+# Ghostty's max scrollback is already effectively unlimited (10M lines).
+scrollback-limit = 10000000
+
+# --- Behaviour matching iTerm2 profile settings ---
+# iTerm2 "Option Key Sends: Normal" -> but for TUIs (pi) we need Option as
+# Alt/Meta so Option+Backspace emits ESC-prefixed backspace-kill-word.
+macos-option-as-alt = true
+# iTerm2 "FocusFollowsMouse: off"
+focus-follows-mouse = false
+# iTerm2 "CopySelection: on" -> copy on mouse select
+copy-on-select = true
+# minimum-contrast left at Ghostty default (1) so text keeps readable contrast
+# iTerm2 "Use Bold / Bright Bold / Italic fonts: on" (these are Ghostty defaults)
+
+# --- Smoother mouse scrolling: drop discrete (wheel) multiplier from 3 to 1
+#     so each wheel step scrolls 1 line; trackpad (precision) already 1 ---
+mouse-scroll-multiplier = precision:1,discrete:1
