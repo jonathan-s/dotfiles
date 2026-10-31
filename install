@@ -1,0 +1,140 @@
+#!/bin/sh
+# install: make this machine match the repository. Safe to re-run.
+#
+#   ./install                 apply every stage
+#   ./install --check         report drift, change nothing; non-zero if anything is off
+#   ./install --only links    run a single stage
+#   ./install -h              this text
+
+set -eu
+
+repo=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+mode=apply
+only=
+failed=
+
+usage() {
+	sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		--check) mode=check ;;
+		--only) only=$2; shift ;;
+		-h | --help) usage; exit 0 ;;
+		*) echo "install: unknown option: $1" >&2; usage >&2; exit 2 ;;
+	esac
+	shift
+done
+
+run_stage() {
+	if [ "$mode" = check ]; then
+		printf '==> %s (check)\n' "$1"
+	else
+		printf '==> %s\n' "$1"
+	fi
+	"$1" "$mode" || {
+		echo "install: stage failed: $1" >&2
+		failed="$failed $1"
+	}
+}
+
+# Fail early, change nothing.
+preflight() {
+	[ "$(uname -s)" = Darwin ] || { echo "install: macOS only" >&2; exit 1; }
+	command -v brew > /dev/null 2>&1 || { echo "install: Homebrew missing, see https://brew.sh" >&2; exit 1; }
+	command -v git > /dev/null 2>&1 || { echo "install: git missing" >&2; exit 1; }
+	[ -f "$repo/Brewfile" ] || { echo "install: Brewfile missing" >&2; exit 1; }
+	if [ "$1" = check ]; then
+		git -C "$repo" diff --quiet || echo "note: working tree is dirty"
+	else
+		echo "host $(uname -m), brew prefix $(brew --prefix)"
+	fi
+}
+
+packages() {
+	if [ "$1" = check ]; then
+		brew bundle check --file="$repo/Brewfile" --verbose
+	else
+		brew bundle install --file="$repo/Brewfile"
+	fi
+}
+
+tools() {
+	# Cloned, not installed: omz's installer edits ~/.zshrc, which is a symlink here.
+	if [ ! -d "$HOME/.oh-my-zsh/.git" ]; then
+		if [ "$1" = check ]; then
+			echo "missing: ~/.oh-my-zsh"
+			return 1
+		fi
+		git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+	fi
+
+	# -s skips versions that are already installed.
+	if [ -f "$repo/.python-version" ]; then
+		want=$(cat "$repo/.python-version")
+		if [ "$1" = check ]; then
+			pyenv versions --bare | grep -qx "$want" || {
+				echo "missing: python $want"
+				return 1
+			}
+		else
+			pyenv install -s "$want"
+			pyenv global "$want"
+		fi
+	fi
+
+	# --no-modify-path: .zshenv already sources ~/.cargo/env.
+	if ! command -v cargo > /dev/null 2>&1; then
+		if [ "$1" = check ]; then
+			echo "missing: cargo"
+			return 1
+		fi
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+			| sh -s -- -y --no-modify-path
+	fi
+}
+
+links() {
+	if [ "$1" = check ]; then
+		"$repo/bootstrap" --verify
+	else
+		"$repo/bootstrap"
+	fi
+}
+
+shell() {
+	want=/bin/zsh
+	current=$(dscl . -read "$HOME" UserShell | awk '{print $2}')
+	if [ "$current" = "$want" ]; then
+		[ "$1" = check ] && echo "login shell: $current"
+		return 0
+	fi
+	if [ "$1" = check ]; then
+		echo "drift: login shell is $current, want $want"
+		return 1
+	fi
+	grep -qx "$want" /etc/shells || {
+		echo "install: $want is not in /etc/shells" >&2
+		return 1
+	}
+	echo "Changing the login shell needs your password:"
+	chsh -s "$want" || {
+		echo "install: chsh failed, run it yourself: chsh -s $want" >&2
+		return 1
+	}
+}
+
+for stage in preflight packages tools links shell; do
+	if [ -n "$only" ] && [ "$only" != "$stage" ]; then
+		continue
+	fi
+	run_stage "$stage"
+done
+
+if [ -n "$failed" ]; then
+	echo "install: unfinished stages:$failed" >&2
+	exit 1
+fi
+
+printf 'install: up to date (%s)\n' "$mode"
