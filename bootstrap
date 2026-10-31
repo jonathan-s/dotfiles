@@ -1,0 +1,112 @@
+#!/bin/sh
+# Link the dotfiles in home/ into $HOME.
+#
+# Application-specific settings under macos/ are not installed by this script.
+
+set -eu
+
+repo=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+src="$repo/home"
+mode=link
+
+usage() {
+	cat <<'EOF'
+Usage: ./bootstrap [--dry-run | --verify]
+
+  (no flags)  link everything, backing up any file it has to replace
+  --dry-run   print what would happen, change nothing
+  --verify    report links that are missing or point somewhere else
+  -h, --help  show this message
+EOF
+}
+
+for arg in "$@"; do
+	case $arg in
+		-n | --dry-run) mode=dry-run ;;
+		--verify) mode=verify ;;
+		-h | --help)
+			usage
+			exit 0
+			;;
+		*)
+			echo "bootstrap: unknown option: $arg" >&2
+			usage >&2
+			exit 2
+			;;
+	esac
+done
+
+[ -d "$src" ] || {
+	echo "bootstrap: missing directory: $src" >&2
+	exit 1
+}
+
+backup="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
+list=$(mktemp)
+trap 'rm -f "$list"' EXIT INT TERM
+
+# Dotfiles only; .DS_Store files are noise and stay out of the way.
+find "$src" -name .DS_Store -prune -o -type f -print > "$list"
+
+ok=0
+changed=0
+missing=0
+
+while IFS= read -r file; do
+	rel=${file#"$src"/}
+	target="$HOME/$rel"
+
+	if [ -L "$target" ] && [ "$(readlink "$target")" = "$file" ]; then
+		ok=$((ok + 1))
+		continue
+	fi
+
+	if [ "$mode" = verify ]; then
+		if [ -L "$target" ]; then
+			echo "wrong target: ~/$rel -> $(readlink "$target")"
+		elif [ -e "$target" ]; then
+			echo "not a link:   ~/$rel"
+		else
+			echo "missing:      ~/$rel"
+		fi
+		missing=$((missing + 1))
+		continue
+	fi
+
+	if [ "$mode" = dry-run ]; then
+		if [ -e "$target" ] || [ -L "$target" ]; then
+			echo "replace: ~/$rel"
+		else
+			echo "link:    ~/$rel"
+		fi
+		changed=$((changed + 1))
+		continue
+	fi
+
+	if [ -e "$target" ] || [ -L "$target" ]; then
+		mkdir -p "$backup/$(dirname "$rel")"
+		mv "$target" "$backup/$rel"
+	fi
+
+	mkdir -p "$(dirname "$target")"
+	ln -s "$file" "$target"
+	changed=$((changed + 1))
+done < "$list"
+
+case $mode in
+	verify)
+		if [ "$missing" -eq 0 ]; then
+			echo "all $ok links are correct"
+		else
+			echo "$missing link(s) need attention, $ok are correct" >&2
+			exit 1
+		fi
+		;;
+	dry-run)
+		echo "would change $changed link(s), $ok already correct"
+		;;
+	link)
+		echo "linked $changed file(s), $ok already correct"
+		[ "$changed" -eq 0 ] || echo "previous files (if any) moved to $backup"
+		;;
+esac

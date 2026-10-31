@@ -12,7 +12,7 @@
     br = branch
 
     # Show the diff between the latest commit and the current state.
-    d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
+    d = !"git diff-index --quiet HEAD -- || clear; git diff --patch-with-stat"
 
     # `git di $number` shows the diff between the state `$number` revisions ago and the current state.
     di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
@@ -23,6 +23,9 @@
 
     # Clone a repository including all submodules.
     c = clone --recursive
+
+    # Useful for stacked prs, you generally want to keep your changes.
+    current-rebase = rebase -X ours
 
     # checkout shortcut.
     ch = checkout
@@ -105,7 +108,7 @@
 
 [core]
     # Use custom `.gitignore` and `.gitattributes`.
-    excludesfile = ~/.gitignore
+    excludesfile = ~/.config/git/ignore
     attributesfile = ~/.gitattributes
 
     # Treat spaces before tabs and all kinds of trailing whitespace as an error.
@@ -126,6 +129,11 @@
     untrackedCache = true
 
     editor = code --new-window --wait
+
+    # Render diffs through delta: full-line +/- backgrounds plus a brighter
+    # box around the words that actually changed (GitHub-style rendering).
+    # Installed through brew install git-delta
+    pager = delta
 
 [color]
     # Use colors in Git commands that are capable of colored output when
@@ -155,10 +163,30 @@
 [diff]
     # Detect copies as well as renames.
     renames = copies
+    # Highlight moved blocks, and let delta style them distinctly.
+    colorMoved = default
 
 [diff "bin"]
     # Use `hexdump` to diff binary files.
     textconv = hexdump -v -C
+
+[diff "prose"]
+    # Markdown's word tokenisation for prose files, minus its ATX-only
+    # xfuncname, so git's default hunk-header fallback still applies.
+    # See ~/.gitattributes.
+    wordRegex = "[^<>= \t]+"
+
+[interactive]
+    # `git add -p` / `git commit -p`: delta colors the hunks but leaves the
+    # patch structure intact so line/chunk selection still works.
+    diffFilter = delta --color-only
+
+[delta]
+    # Dark terminal theme. Flip to `light = true` if you switch to a light one.
+    dark = true
+    # `n`/`N` to jump between files while the pager is open.
+    navigate = true
+    line-numbers = true
 
 [help]
     # Automatically correct and execute mistyped commands.
@@ -173,6 +201,7 @@
     default = simple
     # Make `git push` push relevant annotated tags when pushing branches out.
     followTags = true
+	autoSetupRemote = true
 
 [pull]
     rebase = true
@@ -206,3 +235,10 @@
 
 [init]
     defaultBranch = main
+
+[include]
+    # Machine-specific identity, kept out of the repository.
+    path = ~/.gitconfig.local
+[user]
+	name = Jonathan Sundqvist
+	email = jonathan+git@argpar.se

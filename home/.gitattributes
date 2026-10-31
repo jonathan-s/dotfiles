@@ -1,0 +1,14 @@
+# Automatically normalize line endings for all text-based files
+#* text=auto
+# Disabled because of https://github.com/mathiasbynens/dotfiles/issues/149 :(
+
+# Prose / docs: use git's built-in markdown diff driver.
+#   *.md  -> ATX-heading hunk headers ("## Sub heading") + prose word tokens
+#   rest  -> same word tokens via the "prose" driver in ~/.gitconfig, which
+#            omits xfuncname so the default hunk-header fallback survives
+#            (RST/AsciiDoc headings are underline-style, not ATX).
+*.md            diff=markdown
+*.markdown      diff=markdown
+*.rst           diff=prose
+*.adoc          diff=prose
+*.txt           diff=prose

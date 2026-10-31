@@ -9,7 +9,7 @@ import shutil
 
 APP_SUPPORT = Path.home() / Path('Library/Application Support/')
 VS_CODE_APPLICATION = Path.home() / Path('Library/Application Support/Code/User')
-INIT_DIR = Path.cwd() / 'init'
+INIT_DIR = Path.cwd() / 'macos'
 
 
 """
@@ -149,32 +149,3 @@ def backup(c):
     backup_vscode(c)
     karabiner(c, backup=True)
     spectacle(c, backup=True)
-
-
-@task
-def bootstrap(c):
-    """Moves the .zsh profile and other config stuff to HOME"""
-    user_input = input('This may overwrite existing files in your home directory. Are you sure? (y/n) ')
-    if user_input != 'y':
-        return
-
-    c.run("""
-        rsync --exclude ".git/" \
-        --exclude ".DS_Store" \
-        --exclude "bootstrap.sh" \
-        --exclude "README.md" \
-        --exclude "LICENSE-MIT.txt" \
-        --exclude "venv" \
-        --exclude "brew.sh" \
-        --exclude "setup.sh \
-        --exclude "init" \
-        --exclude "tasks.py \
-        --exclude "requirements.txt" \
-        -avh --no-perms . ~;
-    """)
-
-    cprint("Copying dotfiles to HOME", "green")
-    c.run("source ~/.zprofile;", shell="/bin/zsh")
-
-    cprint("MacOS specific settings", "green")
-    c.run("source ~/.macos;", shell="/bin/zsh")

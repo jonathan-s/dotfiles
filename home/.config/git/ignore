@@ -1,0 +1,24 @@
+# Global ignore file, referenced by core.excludesfile in ~/.gitconfig.
+
+# Compiled Python files
+*.pyc
+__pycache__
+
+# Folder view configuration files
+.DS_Store
+Desktop.ini
+
+# Thumbnail cache files
+._*
+Thumbs.db
+
+# Files that might appear on external disks
+.Spotlight-V100
+.Trashes
+
+# Local-only settings
+.extra
+venv
+
+# Machine-specific agent settings
+**/.claude/settings.local.json

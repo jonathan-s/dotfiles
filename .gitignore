@@ -1,18 +1,13 @@
-# Compiled Python files
+# Repo-level ignores; $HOME-wide ignores live in home/.config/git/ignore.
+
+# Working notes that should not be shared.
+plans/
+
+# Python
 *.pyc
-__pycache__
+__pycache__/
+venv/
 
-# Folder view configuration files
+# macOS
 .DS_Store
-Desktop.ini
-
-# Thumbnail cache files
 ._*
-Thumbs.db
-
-# Files that might appear on external disks
-.Spotlight-V100
-.Trashes
-
-venv
-.extra

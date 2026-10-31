@@ -23,5 +23,5 @@ pip install -r requirements.txt
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Setup all preferences
-inv bootstrap
+./bootstrap
 inv setup

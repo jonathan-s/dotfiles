@@ -19,27 +19,27 @@ The following components exist
 
 - ./brew.sh - Installs all brew packages. Make sure that you've got brew installed first!
 - ./setup.sh - Sets up python environment etc so that you can run invoke.
-- ./macos - Run this if it's on a clean install.
+- ./bootstrap - Links everything in `home/` into `$HOME`. Use `./bootstrap --dry-run` first, `--verify` afterwards.
+- ./macos/defaults.sh - Run this if it's on a clean install.
 
 Once you've run setup.sh you can also run the python invoke commands.
 
 - inv setup - Copy all application specific configuration files to correct place
-- inv bootstrap - Copy all configuration files to home.
 - inv backup - will backup the application configurations files to dotfiles.
 
 
 ### Using Git and the bootstrap script
 
-You can clone the repository wherever you want. (I like to keep it in `~/Projects/dotfiles`, with `~/dotfiles` as a symlink.) The bootstrapper script will pull in the latest version and copy the files to your home folder.
+You can clone the repository wherever you want. (I like to keep it in `~/projects/dotfiles`.) The bootstrapper script links the files from `home/` into your home folder.
 
 ```bash
-git clone https://github.com/jonathan-s/dotfiles.git && cd dotfiles
+git clone https://github.com/jonathan-s/dotfiles.git && cd dotfiles && ./bootstrap
 ```
 
 To update, `cd` into your local `dotfiles` repository and then:
 
 ```bash
-source setup.sh
+git pull && ./bootstrap
 ```
 
 ### Specify the `$PATH`
