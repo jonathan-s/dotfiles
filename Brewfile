@@ -185,6 +185,8 @@ cask "handbrake-app"
 cask "highball"
 # Open-source screen recorder built with web technology
 cask "kap"
+# Free and open-source office suite
+cask "libreoffice"
 # Host-based application firewall
 cask "little-snitch"
 # Knowledge base that works on top of a local folder of plain text Markdown files
