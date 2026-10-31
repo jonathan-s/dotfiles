@@ -5,10 +5,17 @@
 from invoke import task
 from pathlib import Path
 from termcolor import cprint
+import plistlib
 import shutil
 
 VS_CODE_APPLICATION = Path.home() / Path('Library/Application Support/Code/User')
 INIT_DIR = Path.cwd() / 'macos'
+
+RECTANGLE_PREFS = 'com.knollsoft.Rectangle'
+# Window geometry, navigation state and Sparkle update bookkeeping are
+# machine state, not settings, so they stay out of the repo.
+RECTANGLE_SKIP_PREFIXES = ('NS', 'SU')
+RECTANGLE_SKIP_KEYS = {'internalTilingNotified', 'lastVersion'}
 
 
 
@@ -100,13 +107,37 @@ def keyboard(c):
 
 
 @task
+def rectangle(c, backup=False):
+    """Install or backup the Rectangle window manager settings
+
+    Imported shortcuts only show up after Rectangle is restarted.
+    """
+    src = INIT_DIR / 'rectangle.plist'
+
+    if backup:
+        exported = c.run(f'defaults export {RECTANGLE_PREFS} -', hide=True)
+        data = plistlib.loads(exported.stdout.encode())
+        for key in list(data):
+            if key.startswith(RECTANGLE_SKIP_PREFIXES) or key in RECTANGLE_SKIP_KEYS:
+                del data[key]
+        with src.open('wb') as f:
+            plistlib.dump(data, f, sort_keys=True)
+        return
+
+    cprint('Set up settings for rectangle', 'green')
+    c.run(f'defaults import {RECTANGLE_PREFS} {src}')
+
+
+@task
 def setup(c):
     """Copy all preferences to the correct location"""
     install_vscode(c)
     keyboard(c)
+    rectangle(c)
 
 
 @task
 def backup(c):
     """Backup all files that has changed at some point"""
     backup_vscode(c)
+    rectangle(c, backup=True)
