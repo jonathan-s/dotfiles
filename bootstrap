@@ -118,6 +118,14 @@ for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
 	pruned=$((pruned + 1))
 done
 
+# macOS preferences, on Macs only. Stamped per module, so this is a no-op
+# unless one of the modules changed since the last successful apply.
+if [ "$mode" = link ] && [ "${DOTFILES_SKIP_MACOS:-0}" != 1 ] && [ -x "$repo/macos/defaults.sh" ]; then
+	case $(uname -s) in
+		Darwin) "$repo/macos/defaults.sh" --quiet ;;
+	esac
+fi
+
 case $mode in
 	verify)
 		if [ "$missing" -eq 0 ]; then

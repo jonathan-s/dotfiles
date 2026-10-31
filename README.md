@@ -23,10 +23,11 @@ This repo has added the following extra things.
 | `install`    | cold-start orchestrator: packages, tools, links, login shell            |
 | `Brewfile`   | `brew bundle` manifest of formulae and casks                            |
 | `home/`      | everything that belongs in `$HOME`                                      |
-| `macos/`     | app-specific settings, not applied yet                                  |
+| `macos/`     | macOS preferences and app settings, applied by `bootstrap` on Macs      |
 | `.githooks/` | pre-commit guard against committing credentials                         |
 
 `./bootstrap --dry-run` shows what it would change; `--verify` reports links that drifted.
+`./macos/defaults.sh --check` reports macOS preferences that drifted from `macos/defaults/`.
 
 ### Installing a new machine
 
