@@ -13,8 +13,6 @@ brew "ansible"
 brew "harfbuzz"
 # Text processor and publishing toolchain for AsciiDoc
 brew "asciidoctor"
-# Shell extension to jump to frequently used directories
-brew "autojump"
 # Tool for generating GNU Standards-compliant Makefiles
 brew "automake"
 # Clone of cat(1) with syntax highlighting and Git integration
@@ -111,8 +109,14 @@ brew "nvm"
 brew "openssh"
 # Efficient zipping
 brew "sevenzip"
+# Static analysis and lint tool, for (ba)sh scripts
+brew "shellcheck"
+# Autoformat shell script source code
+brew "shfmt"
 # Swiss-army knife of markup format conversion
 brew "pandoc"
+# Parallel gzip
+brew "pigz"
 # Tool for managing OCI containers and pods
 brew "podman"
 # Monitor data's progress through a pipe
@@ -123,6 +127,8 @@ brew "pyenv"
 brew "pyenv-virtualenv"
 # Persistent key-value database, with built-in net interface
 brew "redis"
+# Extremely fast Python linter, written in Rust
+brew "ruff"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
 # SMART hard drive monitoring
@@ -131,6 +137,10 @@ brew "smartmontools"
 brew "sox"
 # Add a public key to a remote machine's authorized_keys file
 brew "ssh-copy-id"
+# Terminal multiplexer
+brew "tmux"
+# CLI tool that moves files or folder to the trash
+brew "trash"
 # Non-interactive SSH password auth
 brew "sshpass"
 # Extremely fast Python package installer and resolver, written in Rust
@@ -145,10 +155,18 @@ brew "wget"
 brew "woff2"
 # JavaScript package manager
 brew "yarn"
+# Process YAML, JSON, XML, CSV and properties documents from the CLI
+brew "yq"
 # Feature-rich command-line audio/video downloader
 brew "yt-dlp"
 # New zlib (gzip, deflate) compatible compressor
 brew "zopfli"
+# Shell extension to navigate your filesystem faster
+brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-syntax-highlighting"
 # FUSE file system for mounting to another location
 brew "gromgit/fuse/bindfs-mac", trusted: true
 # Proton Pass CLI - Command-line interface for Proton Pass
