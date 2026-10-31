@@ -22,6 +22,22 @@ export NVM_DIR="$HOME/.nvm"
 # bun completions
 [ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
 
+# direnv: load .envrc when entering a directory.
+command -v direnv > /dev/null 2>&1 && eval "$(direnv hook zsh)"
+
+# fzf: Ctrl-R history, Alt-C cd, Ctrl-T file picker, plus completion.
+command -v fzf > /dev/null 2>&1 && eval "$(fzf --zsh)"
+
+# zoxide: `z <partial path>` to jump around.
+command -v zoxide > /dev/null 2>&1 && eval "$(zoxide init zsh)"
+
+# zsh-autosuggestions, then syntax highlighting, which has to be sourced last
+# so it can wrap the widgets the other plugins define.
+[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && \
+	source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+	source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 # Reuse a single ssh-agent instead of spawning one per shell.
 # macOS normally provides one via launchd, which is why SSH_AUTH_SOCK is often
 # already set; the cache file covers shells started outside that session.
