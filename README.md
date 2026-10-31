@@ -48,7 +48,8 @@ On macOS it also applies the preferences in `macos/defaults/`.
 
 ## Updating
 
-`./bootstrap` it only relinks the dotfiles and applies preference modules that changed:
+`./bootstrap` only relinks the dotfiles and applies preference modules that changed or have
+drifted:
 
 ```bash
 git pull && ./bootstrap
@@ -75,7 +76,7 @@ Narrower checks exist too:
 ```bash
 ./bootstrap --dry-run     # what linking would change, without changing it
 ./bootstrap --verify      # link health only
-./install --check         # packages and tools only
+./install --check         # packages, tools, links and macOS preferences
 ./macos/defaults.sh --check   # macOS preferences only
 ```
 

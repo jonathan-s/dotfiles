@@ -3,7 +3,7 @@
 #
 #   ./install                 apply every stage
 #   ./install --check         report drift, change nothing; non-zero if anything is off
-#   ./install --only links    run a single stage
+#   ./install --only links    run a single stage (preflight packages tools links macos shell)
 #   ./install -h              this text
 
 set -eu
@@ -20,12 +20,32 @@ usage() {
 while [ $# -gt 0 ]; do
 	case $1 in
 		--check) mode=check ;;
-		--only) only=$2; shift ;;
+		--only)
+			[ $# -ge 2 ] || {
+				echo "install: --only needs a stage name" >&2
+				exit 2
+			}
+			only=$2
+			shift
+			;;
 		-h | --help) usage; exit 0 ;;
 		*) echo "install: unknown option: $1" >&2; usage >&2; exit 2 ;;
 	esac
 	shift
 done
+
+stages='preflight packages tools links macos shell'
+
+if [ -n "$only" ]; then
+	case " $stages " in
+		*" $only "*) ;;
+		*)
+			echo "install: unknown stage: $only" >&2
+			echo "stages: $stages" >&2
+			exit 2
+			;;
+	esac
+fi
 
 run_stage() {
 	if [ "$mode" = check ]; then
@@ -62,6 +82,10 @@ packages() {
 
 tools() {
 	# Cloned, not installed: omz's installer edits ~/.zshrc, which is a symlink here.
+	if [ -d "$HOME/.oh-my-zsh" ] && [ ! -d "$HOME/.oh-my-zsh/.git" ]; then
+		echo "install: ~/.oh-my-zsh exists but is not a git clone; move it aside and re-run" >&2
+		return 1
+	fi
 	if [ ! -d "$HOME/.oh-my-zsh/.git" ]; then
 		if [ "$1" = check ]; then
 			echo "missing: ~/.oh-my-zsh"
@@ -99,7 +123,18 @@ links() {
 	if [ "$1" = check ]; then
 		"$repo/bootstrap" --verify
 	else
-		"$repo/bootstrap"
+		# The macos stage below owns the preferences, so keep bootstrap to links.
+		DOTFILES_SKIP_MACOS=1 "$repo/bootstrap"
+	fi
+}
+
+macos() {
+	[ "$(uname -s)" = Darwin ] || return 0
+	[ -x "$repo/macos/defaults.sh" ] || return 0
+	if [ "$1" = check ]; then
+		"$repo/macos/defaults.sh" --check
+	else
+		"$repo/macos/defaults.sh" --quiet
 	fi
 }
 
@@ -125,7 +160,7 @@ shell() {
 	}
 }
 
-for stage in preflight packages tools links shell; do
+for stage in $stages; do
 	if [ -n "$only" ] && [ "$only" != "$stage" ]; then
 		continue
 	fi

@@ -56,7 +56,14 @@ while [ $# -gt 0 ]; do
 		--check) mode=check ;;
 		--apply) mode=apply ;;
 		--list) mode=list ;;
-		--only) only=$2; shift ;;
+		--only)
+			[ $# -ge 2 ] || {
+				echo "macos/defaults.sh: --only needs a module name" >&2
+				exit 2
+			}
+			only=$2
+			shift
+			;;
 		--all) force_all=1 ;;
 		--system) run_system=1 ;;
 		--no-restart) restart=0 ;;
@@ -73,6 +80,16 @@ while [ $# -gt 0 ]; do
 	esac
 	shift
 done
+
+if [ -n "$only" ] && [ ! -f "$modules_dir/$only.sh" ]; then
+	echo "macos/defaults.sh: unknown module: $only" >&2
+	available=""
+	for f in "$modules_dir"/*.sh; do
+		available="$available $(basename "$f" .sh)"
+	done
+	echo "available:$available" >&2
+	exit 2
+fi
 
 say() {
 	[ "$quiet" -eq 1 ] || echo "$@"
@@ -130,11 +147,23 @@ EOF
 $(sed -n 's/^# expect-link: *//p' "$file")
 EOF
 
+	had_noglob=0
+	case $- in *f*) had_noglob=1 ;; esac
 	set -f
 	while IFS= read -r line; do
-		# shellcheck disable=SC2086
-		set -- $line
+		# Keys and values may contain spaces, so let the shell split with
+		# quote awareness. Module files are ours; skip anything that could
+		# run a command.
+		case $line in
+			*'$'* | *'`'* | *';'* | *'&'* | *'|'* | *'('* | *')'*) continue ;;
+		esac
+		# shellcheck disable=SC2086,SC2294
+		eval "set -- $line"
 		[ "$#" -ge 5 ] || continue
+		case $5 in
+			-bool | -int | -float | -string) ;;
+			*) continue ;;
+		esac
 		domain=$3
 		key=$4
 		flag=$5
@@ -165,8 +194,9 @@ EOF
 			drift=$((drift + 1))
 		fi
 	done <<EOF
-$(grep -E '^defaults write [^ ]+ [^ ]+ -(bool|int|float|string) ' "$file" || true)
+$(grep -E '^defaults write .* -(bool|int|float|string)( |$)' "$file" || true)
 EOF
+	[ "$had_noglob" -eq 1 ] || set +f
 }
 
 apply_file() {
@@ -179,10 +209,18 @@ apply_file() {
 	sum=$(shasum -a 256 "$file" | awk '{print $1}')
 	if [ "$force_all" -eq 0 ] && ! grep -q '^# stamp-skip: true' "$file" \
 		&& [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
-		skipped=$((skipped + 1))
-		return 0
+		# Unchanged module: apply only if the machine drifted from it, so a
+		# normal bootstrap converges instead of just trusting the stamp.
+		before=$drift
+		check_file "$file" > /dev/null 2>&1 || true
+		if [ "$drift" -eq "$before" ]; then
+			skipped=$((skipped + 1))
+			return 0
+		fi
+		say "==> $name (re-applying: drift)"
+	else
+		say "==> $name"
 	fi
-	say "==> $name"
 	if sh "$file"; then
 		mkdir -p "$stamp_dir"
 		printf '%s\n' "$sum" > "$stamp"

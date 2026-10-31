@@ -6,8 +6,9 @@
 
 set -eu
 
-# .githooks is excluded so this pattern list cannot trip over itself.
-staged=$(git diff --cached -U0 -- . ':(exclude).githooks')
+# Only this file is excluded: its own pattern list would otherwise trip the guard,
+# but a credential committed anywhere else under .githooks must still be caught.
+staged=$(git diff --cached -U0 -- . ':(exclude).githooks/pre-commit')
 
 patterns='ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|ghs_[A-Za-z0-9]{20,}|ghu_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|oauth_token[[:space:]]*:[[:space:]]*[[:graph:]]+'
 

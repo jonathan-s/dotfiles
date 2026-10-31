@@ -49,7 +49,8 @@ list=$(mktemp)
 trap 'rm -f "$list"' EXIT INT TERM
 
 # Versioned commit hooks, so the credential guard travels with the repo.
-if [ -d "$repo/.git" ] && [ -d "$repo/.githooks" ]; then
+# Only in link mode: --report and --verify are read-only.
+if [ "$mode" = link ] && [ -d "$repo/.git" ] && [ -d "$repo/.githooks" ]; then
 	git -C "$repo" config core.hooksPath .githooks
 fi
 
@@ -120,12 +121,19 @@ report_git() {
 	dirty=$(git -C "$repo" status --porcelain | wc -l | tr -d ' ')
 	if [ "$dirty" -eq 0 ]; then
 		echo "  working tree clean"
-		return 0
+	else
+		echo "  $dirty uncommitted path(s) — edits to symlinked files land here:"
+		git -C "$repo" status --porcelain | head -10 | sed 's/^/    /'
+		[ "$dirty" -le 10 ] || echo "    …"
+		report_problem
 	fi
-	echo "  $dirty uncommitted path(s) — edits to symlinked files land here:"
-	git -C "$repo" status --porcelain | head -10 | sed 's/^/    /'
-	[ "$dirty" -le 10 ] || echo "    …"
-	report_problem
+	if [ -d "$repo/.githooks" ]; then
+		hooks=$(git -C "$repo" config --get core.hooksPath || true)
+		if [ "$hooks" != ".githooks" ]; then
+			echo "  core.hooksPath is ${hooks:-unset}, want .githooks"
+			report_problem
+		fi
+	fi
 }
 
 report_macos() {
@@ -151,6 +159,30 @@ ok=0
 changed=0
 missing=0
 pruned=0
+blocked=0
+
+# Check destinations before linking anything, so a bad path cannot leave a
+# half-linked home directory behind.
+if [ "$mode" = link ]; then
+	while IFS= read -r file; do
+		rel=${file#"$src"/}
+		# Walk every existing ancestor: a file in the middle of the path
+		# breaks mkdir -p just as badly as a file at the leaf.
+		dir=$(dirname -- "$HOME/$rel")
+		while [ "$dir" != "$HOME" ] && [ "$dir" != "/" ]; do
+			if [ -e "$dir" ] && [ ! -d "$dir" ]; then
+				echo "bootstrap: cannot link ~/$rel: $dir is not a directory" >&2
+				blocked=$((blocked + 1))
+				break
+			fi
+			dir=$(dirname -- "$dir")
+		done
+	done < "$list"
+	if [ "$blocked" -gt 0 ]; then
+		echo "bootstrap: $blocked destination(s) blocked, nothing was changed" >&2
+		exit 1
+	fi
+fi
 
 while IFS= read -r file; do
 	rel=${file#"$src"/}
@@ -214,9 +246,15 @@ done
 
 # macOS preferences, on Macs only. Stamped per module, so this is a no-op
 # unless one of the modules changed since the last successful apply.
+macos_status=0
 if [ "$mode" = link ] && [ "${DOTFILES_SKIP_MACOS:-0}" != 1 ] && [ -x "$repo/macos/defaults.sh" ]; then
 	case $(uname -s) in
-		Darwin) "$repo/macos/defaults.sh" --quiet ;;
+		Darwin)
+			"$repo/macos/defaults.sh" --quiet || {
+				echo "bootstrap: macos/defaults.sh failed" >&2
+				macos_status=1
+			}
+			;;
 	esac
 fi
 
@@ -237,3 +275,5 @@ case $mode in
 		[ "$changed" -eq 0 ] || echo "previous files (if any) moved to $backup"
 		;;
 esac
+
+[ "$macos_status" -eq 0 ] || exit 1
