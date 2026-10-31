@@ -7,7 +7,7 @@ set -eu
 
 repo=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 src="$repo/home"
-mode=link
+mode='link'
 
 usage() {
 	cat <<'EOF'
