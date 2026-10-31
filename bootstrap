@@ -51,6 +51,7 @@ find "$src" -name .DS_Store -prune -o -type f -print > "$list"
 ok=0
 changed=0
 missing=0
+pruned=0
 
 while IFS= read -r file; do
 	rel=${file#"$src"/}
@@ -93,6 +94,25 @@ while IFS= read -r file; do
 	changed=$((changed + 1))
 done < "$list"
 
+# Links whose file has left the repository would linger as dangling symlinks.
+for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
+	[ -L "$candidate" ] || continue
+	link=$(readlink "$candidate")
+	case $link in
+		"$src"/*) ;;
+		*) continue ;;
+	esac
+	[ -e "$link" ] && continue
+	if [ "$mode" = verify ]; then
+		echo "dangling:     ~/${candidate#"$HOME"/} (file is gone from the repo)"
+		missing=$((missing + 1))
+		continue
+	fi
+	[ "$mode" = dry-run ] || rm "$candidate"
+	echo "prune:   ~/${candidate#"$HOME"/} (file is gone from the repo)"
+	pruned=$((pruned + 1))
+done
+
 case $mode in
 	verify)
 		if [ "$missing" -eq 0 ]; then
@@ -103,10 +123,10 @@ case $mode in
 		fi
 		;;
 	dry-run)
-		echo "would change $changed link(s), $ok already correct"
+		echo "would change $changed link(s) and prune $pruned, $ok already correct"
 		;;
 	link)
-		echo "linked $changed file(s), $ok already correct"
+		echo "linked $changed file(s), pruned $pruned, $ok already correct"
 		[ "$changed" -eq 0 ] || echo "previous files (if any) moved to $backup"
 		;;
 esac
