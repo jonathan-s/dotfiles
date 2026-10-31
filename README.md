@@ -26,8 +26,10 @@ This repo has added the following extra things.
 | `macos/`     | macOS preferences and app settings, applied by `bootstrap` on Macs      |
 | `.githooks/` | pre-commit guard against committing credentials                         |
 
-`./bootstrap --dry-run` shows what it would change; `--verify` reports links that drifted.
-`./macos/defaults.sh --check` reports macOS preferences that drifted from `macos/defaults/`.
+`./bootstrap --dry-run` shows what it would change, `--verify` reports broken links, and
+`--report` answers "is the repo in sync?" in one command: links, files shadowing a tracked
+config, uncommitted repo changes, and macOS defaults drift. `./macos/defaults.sh --check`
+reports just the macOS preferences.
 
 ### Installing a new machine
 

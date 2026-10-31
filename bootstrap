@@ -11,11 +11,13 @@ mode='link'
 
 usage() {
 	cat <<'EOF'
-Usage: ./bootstrap [--dry-run | --verify]
+Usage: ./bootstrap [--dry-run | --verify | --report]
 
   (no flags)  link everything, backing up any file it has to replace
   --dry-run   print what would happen, change nothing
   --verify    report links that are missing or point somewhere else
+  --report    everything that is out of sync: links, shadowing files,
+              uncommitted repo changes and macOS defaults drift
   -h, --help  show this message
 EOF
 }
@@ -24,6 +26,7 @@ for arg in "$@"; do
 	case $arg in
 		-n | --dry-run) mode=dry-run ;;
 		--verify) mode=verify ;;
+		--report) mode=report ;;
 		-h | --help)
 			usage
 			exit 0
@@ -52,6 +55,97 @@ fi
 
 # Dotfiles only; .DS_Store files are noise and stay out of the way.
 find "$src" -name .DS_Store -prune -o -type f -print > "$list"
+
+report_status=0
+
+report_problem() {
+	report_status=1
+}
+
+run_report() {
+	report_links
+	report_git
+	report_macos
+	if [ "$report_status" -eq 0 ]; then
+		echo "bootstrap: everything in sync"
+	else
+		echo "bootstrap: out of sync (see above)" >&2
+	fi
+}
+
+report_links() {
+	echo "links"
+	good=0
+	bad=0
+	shadow=0
+	while IFS= read -r file; do
+		rel=${file#"$src"/}
+		target="$HOME/$rel"
+		if [ -L "$target" ] && [ "$(readlink "$target")" = "$file" ]; then
+			good=$((good + 1))
+		elif [ -L "$target" ]; then
+			echo "  wrong target: ~/$rel -> $(readlink "$target")"
+			bad=$((bad + 1))
+			report_problem
+		elif [ -e "$target" ]; then
+			echo "  shadowed by a real file: ~/$rel"
+			shadow=$((shadow + 1))
+			report_problem
+		else
+			echo "  missing: ~/$rel"
+			bad=$((bad + 1))
+			report_problem
+		fi
+	done < "$list"
+
+	# Links into the repo whose source is gone (pruned files).
+	for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
+		[ -L "$candidate" ] || continue
+		link=$(readlink "$candidate")
+		case $link in
+			"$src"/*) ;;
+			*) continue ;;
+		esac
+		[ -e "$link" ] && continue
+		echo "  dangling: ~/${candidate#"$HOME"/}"
+		bad=$((bad + 1))
+		report_problem
+	done
+	printf '  %d correct, %d wrong or missing, %d shadowed\n' "$good" "$bad" "$shadow"
+}
+
+report_git() {
+	[ -d "$repo/.git" ] || return 0
+	echo "repository"
+	dirty=$(git -C "$repo" status --porcelain | wc -l | tr -d ' ')
+	if [ "$dirty" -eq 0 ]; then
+		echo "  working tree clean"
+		return 0
+	fi
+	echo "  $dirty uncommitted path(s) — edits to symlinked files land here:"
+	git -C "$repo" status --porcelain | head -10 | sed 's/^/    /'
+	[ "$dirty" -le 10 ] || echo "    …"
+	report_problem
+}
+
+report_macos() {
+	[ "$(uname -s)" = Darwin ] || return 0
+	[ -x "$repo/macos/defaults.sh" ] || return 0
+	[ "${DOTFILES_SKIP_MACOS:-0}" = 1 ] && return 0
+	echo "macOS defaults"
+	out=$("$repo/macos/defaults.sh" --check 2>&1) || true
+	if printf '%s\n' "$out" | grep -q 'no drift'; then
+		echo "  no drift"
+		return 0
+	fi
+	printf '%s\n' "$out" | sed 's/^/  /'
+	report_problem
+}
+
+if [ "$mode" = report ]; then
+	run_report
+	exit "$report_status"
+fi
 
 ok=0
 changed=0
