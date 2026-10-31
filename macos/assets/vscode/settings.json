@@ -1,4 +1,7 @@
 {
+    // Installed by macos/defaults/90-assets.sh. python.defaultInterpreterPath is
+    // intentionally absent: it pointed at a client project's venv, so set it
+    // per workspace (.vscode/settings.json) rather than committing it here.
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
         "**/.git": true,
@@ -54,24 +57,38 @@
     "[scss]": {
         "editor.tabSize": 2,
     },
+    "[css]": {
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "aeschli.vscode-css-formatter",
+    },
     "[xml]": {
         "editor.tabSize": 2
     },
     "[html]": {
         "editor.tabSize": 2,
+        "editor.formatOnSave": false,
         "editor.defaultFormatter": "vscode.html-language-features"
     },
     "[yaml]": {
         "editor.tabSize": 2
     },
     "[python]": {
-        "editor.tabSize": 4
+        "editor.tabSize": 4,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        },
     },
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
     "files.associations": {
         "*.css": "postcss",
         "*.adoc": "markdown"
     },
-    "python.languageServer": "Jedi",
+    "python.languageServer": "Pylance",
     "python.analysis.autoImportCompletions": false,
     "workbench.editorAssociations": {
         "*.ipynb": "jupyter-notebook"
@@ -84,7 +101,7 @@
     "editor.bracketPairColorization.enabled": true,
     "editor.definitionLinkOpensInPeek": true,
     "flake8.args": [
-        "--ignore=E501,W503"
+        "--ignore=E501,W503,E711"
     ],
     "editor.indentSize": "tabSize",
     "advancedNewFile.exclude": {
@@ -95,10 +112,28 @@
     "rust-analyzer.semanticHighlighting.punctuation.enable": true,
     "rust-analyzer.semanticHighlighting.punctuation.separate.macro.bang": true,
     "rust-analyzer.semanticHighlighting.punctuation.specialization.enable": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true //optional
+    },
     "editor.inlayHints.enabled": "offUnlessPressed",
     "editor.tabCompletion": "on",
     "search.exclude": {
         "**/target": true
     },
     "terminal.integrated.defaultProfile.osx": "zsh",
+    "github.copilot.advanced": {},
+    "github.copilot.editor.enableAutoCompletions": false,
+    "editor.largeFileOptimizations": false,
+    "json.format.enable": false,
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "python": false
+    },
+    "editor.codeActionsOnSave": {},
+    "mark-sharp.display.documentWidth": "letter",
+    "mark-sharp.display.fontSize": 16,
 }

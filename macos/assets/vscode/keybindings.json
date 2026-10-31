@@ -250,5 +250,25 @@
         "key": "cmd+k cmd+0",
         "command": "-editor.foldAll",
         "when": "editorTextFocus && foldingEnabled"
+    },
+    {
+        "key": "shift+alt+up",
+        "command": "editor.emmet.action.incrementNumberByOne",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+alt+down",
+        "command": "editor.emmet.action.decrementNumberByOne",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "cmd+[KeyQ]",
+        "command": "mark-sharp.switch-editor-mode",
+        "when": "activeWebviewPanelId == 'msharp.customEditor' || editorLangId == 'markdown'"
+    },
+    {
+        "key": "cmd+k y",
+        "command": "-mark-sharp.switch-editor-mode",
+        "when": "activeWebviewPanelId == 'msharp.customEditor' || editorLangId == 'markdown'"
     }
 ]

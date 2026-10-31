@@ -41,6 +41,13 @@
         ],
 		"description": "Procedural macro"
     },
+    "Derive": {
+        "prefix": ["de", "derive"],
+        "body": [
+            "#[derive($1)]"
+        ],
+        "description": "Derive macro"
+    },
     "Procedural macro!": {
         "prefix": "pr1",
         "body": [
@@ -177,9 +184,9 @@
         "description": "while let loop"
     },
     "struct": {
-        "prefix": "stru",
+        "prefix": ["st", "struct"],
         "body": [
-            "struct ${1:name} {",
+            "${1:pub }struct ${2:name} {",
             "\t$0",
             "}"
         ],
