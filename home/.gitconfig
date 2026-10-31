@@ -236,9 +236,6 @@
 [init]
     defaultBranch = main
 
-[include]
-    # Machine-specific identity, kept out of the repository.
-    path = ~/.gitconfig.local
 [user]
 	name = Jonathan Sundqvist
 	email = jonathan+git@argpar.se

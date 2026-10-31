@@ -46,8 +46,7 @@ unfunction _ssh_agent_alive
 
 # User dotfiles, loaded last so they win over anything above.
 # * ~/.path can be used to extend `$PATH`.
-# * ~/.extra can be used for settings you don’t want to commit.
-for file in ~/.{path,exports,aliases,functions,extra}; do
+for file in ~/.{path,exports,aliases,functions}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file"
 done
 unset file

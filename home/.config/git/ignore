@@ -17,7 +17,6 @@ Thumbs.db
 .Trashes
 
 # Local-only settings
-.extra
 venv
 
 # Machine-specific agent settings
