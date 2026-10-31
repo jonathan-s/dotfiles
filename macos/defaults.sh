@@ -12,6 +12,10 @@
 # Stamps live in ~/.cache/dotfiles/macos-defaults, so a converged machine does
 # nothing on ./bootstrap and a changed module re-applies exactly once.
 #
+# A module can declare two extra conventions:
+#   # stamp-include: <path>      asset that belongs in the module's change hash
+#   # expect-file: <src>|<dest>  copied file that --check compares against src
+#
 # ./macos/repair.sh holds the expensive one-off fixes (Spotlight reindex,
 # Launch Services rebuild); they are never part of a normal apply.
 
@@ -30,6 +34,7 @@ failed=
 applied=0
 skipped=0
 drift=0
+restart_needed=0
 
 usage() {
 	cat <<'EOF'
@@ -89,6 +94,21 @@ module_names() {
 check_file() {
 	file=$1
 	name=$(basename "$file" .sh)
+	dir=$(dirname "$file")
+
+	# Files that are copied into place are compared directly.
+	while IFS= read -r spec; do
+		[ -n "$spec" ] || continue
+		src="$dir/${spec%%|*}"
+		dest=$(printf '%s' "${spec#*|}" | sed "s|\${HOME}|$HOME|g")
+		if ! cmp -s "$src" "$dest" 2> /dev/null; then
+			echo "drift: $name: $dest differs from $(basename "$src")"
+			drift=$((drift + 1))
+		fi
+	done <<EOF
+$(sed -n 's/^# expect-file: *//p' "$file")
+EOF
+
 	set -f
 	while IFS= read -r line; do
 		# shellcheck disable=SC2086
@@ -128,6 +148,20 @@ $(grep -E '^defaults write [^ ]+ [^ ]+ -(bool|int|float|string) ' "$file" || tru
 EOF
 }
 
+stamp_sum() {
+	file=$1
+	dir=$(dirname "$file")
+	parts=$(shasum -a 256 "$file")
+	while IFS= read -r inc; do
+		[ -n "$inc" ] || continue
+		parts="$parts
+$(shasum -a 256 "$dir/$inc")"
+	done <<EOF
+$(sed -n 's/^# stamp-include: *//p' "$file")
+EOF
+	printf '%s\n' "$parts" | shasum -a 256 | awk '{print $1}'
+}
+
 apply_file() {
 	file=$1
 	name=$(basename "$file" .sh)
@@ -135,7 +169,7 @@ apply_file() {
 		return 0
 	fi
 	stamp="$stamp_dir/$name.sha"
-	sum=$(shasum -a 256 "$file" | awk '{print $1}')
+	sum=$(stamp_sum "$file")
 	if [ "$force_all" -eq 0 ] && [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
 		skipped=$((skipped + 1))
 		return 0
@@ -145,6 +179,8 @@ apply_file() {
 		mkdir -p "$stamp_dir"
 		printf '%s\n' "$sum" > "$stamp"
 		applied=$((applied + 1))
+		# Assets (copied files, plist imports) do not need a Dock relaunch.
+		[ "$name" = 90-assets ] || restart_needed=1
 	else
 		echo "macos/defaults.sh: module failed: $name" >&2
 		failed="$failed $name"
@@ -198,7 +234,7 @@ case $mode in
 				sh "$host_file" || failed="$failed hosts/$host"
 			fi
 		fi
-		if [ "$applied" -gt 0 ] && [ "$restart" -eq 1 ]; then
+		if [ "$restart_needed" -eq 1 ] && [ "$restart" -eq 1 ]; then
 			say "restarting Dock, Finder and SystemUIServer"
 			restart_apps
 		fi
