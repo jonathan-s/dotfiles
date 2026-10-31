@@ -82,11 +82,8 @@ brew install automake
 brew install cmake
 # gives examples of man pages
 brew install cheat
-brew install dep
 brew install direnv
-brew install docker-machine
 brew install ffmpeg
-brew install gcutil
 brew install geckodriver
 # Graph visualization software from AT&T and Bell Labs
 brew install graphviz
