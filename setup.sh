@@ -1,14 +1,6 @@
 #!/bin/zsh
 
-# install brew.
-
-echo "Install brew, and brew packages? (y/n)"
-read INSTALL_BREW
-
-if [[ $INSTALL_BREW == "y" ]]
-then
-  source brew.sh
-fi
+# Packages are installed from the Brewfile by ./install.
 
 # Make sure that we have a sane python version as global
 pyenv install 3.10.1
