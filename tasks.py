@@ -7,16 +7,9 @@ from pathlib import Path
 from termcolor import cprint
 import shutil
 
-APP_SUPPORT = Path.home() / Path('Library/Application Support/')
 VS_CODE_APPLICATION = Path.home() / Path('Library/Application Support/Code/User')
 INIT_DIR = Path.cwd() / 'macos'
 
-
-"""
-- Copy rectangle settings
-- remove karabiner and spectacle
-- ?
-"""
 
 
 @task
@@ -48,7 +41,7 @@ def backup_vscode(c):
     Copy settings and extensions from VS Code to dotfiles
     """
     result = c.run('code --list-extensions | xargs -L 1 echo code --install-extension')
-    with (Path.cwd() / 'init' / 'vscode' / 'vscode.sh').open(mode='w') as f:
+    with (INIT_DIR / 'vscode' / 'vscode.sh').open(mode='w') as f:
         f.write(result.stdout)
 
     src_keybindings = VS_CODE_APPLICATION / 'keybindings.json'
@@ -98,22 +91,6 @@ def install_vscode(c):
 
 
 @task
-def spectacle(c, backup=False):
-    """
-    NOTE: Will fail if spectacle hasn't been run before.
-    """
-    shortcuts_dest = APP_SUPPORT / 'Spectacle' / 'Shortcuts.json'
-    shortcuts_src = INIT_DIR / 'spectacle.json'
-
-    if backup:
-        c.run('cp {} {}'.format(shortcuts_dest, shortcuts_src))
-        return
-
-    cprint('Set up settings for spectacle', 'green')
-    c.run('cp {} {}'.format(shortcuts_src, shortcuts_dest))
-
-
-@task
 def keyboard(c):
     """Copy keyboard layout to the correct place"""
     src = INIT_DIR / 'Swedish-Svorak.keylayout'
@@ -127,11 +104,9 @@ def setup(c):
     """Copy all preferences to the correct location"""
     install_vscode(c)
     keyboard(c)
-    spectacle(c)
 
 
 @task
 def backup(c):
     """Backup all files that has changed at some point"""
     backup_vscode(c)
-    spectacle(c, backup=True)
