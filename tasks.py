@@ -114,18 +114,6 @@ def spectacle(c, backup=False):
 
 
 @task
-def karabiner(c, backup=False):
-    src = INIT_DIR / 'karabiner.json'
-    dest = '~/.config/karabiner'
-
-    if backup:
-        c.run(f'cp {dest}/karabiner.json {src}')
-        return
-    cprint('Set up settings for karabiner', 'green')
-    c.run(f'mkdir -p {dest} && cp {src} {dest}/karabiner.json')
-
-
-@task
 def keyboard(c):
     """Copy keyboard layout to the correct place"""
     src = INIT_DIR / 'Swedish-Svorak.keylayout'
@@ -138,7 +126,6 @@ def keyboard(c):
 def setup(c):
     """Copy all preferences to the correct location"""
     install_vscode(c)
-    karabiner(c)
     keyboard(c)
     spectacle(c)
 
@@ -147,5 +134,4 @@ def setup(c):
 def backup(c):
     """Backup all files that has changed at some point"""
     backup_vscode(c)
-    karabiner(c, backup=True)
     spectacle(c, backup=True)
