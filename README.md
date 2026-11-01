@@ -2,24 +2,24 @@
 
 Personal dotfiles for macOS, zsh and a handful of editors. Everything that belongs in `$HOME` lives under `home/` and is symlinked into place, packages are declared in a `Brewfile`, and the macOS preferences are split into small modules that can be checked.
 
-Originally forked from [mathiasbynens/dotfiles](https://github.com/mathiasbynens/dotfiles); most of it has since been rewritten. Licensed MIT (see `LICENSE-MIT.txt`).
+Originally forked from [mathiasbynens/dotfiles](https://github.com/mathiasbynens/dotfiles); most of it has since been rewritten.
 
 **Warning:** these are my settings. If you want to use them, fork the repo, read the code and remove what you don't need. Use at your own risk.
 
 ## Contents
 
 - [Jonathan's dotfiles](#jonathans-dotfiles)
-  - [Contents](#contents)
-  - [What is in here](#what-is-in-here)
-  - [Installing a new machine](#installing-a-new-machine)
-  - [Updating](#updating)
-  - [Checking that things are in sync](#checking-that-things-are-in-sync)
-  - [Packages](#packages)
-  - [Editors](#editors)
-  - [macOS preferences](#macos-preferences)
-  - [Local overrides](#local-overrides)
-  - [Design notes](#design-notes)
-  - [Acknowledgements](#acknowledgements)
+    - [Contents](#contents)
+    - [What is in here](#what-is-in-here)
+    - [Installing a new machine](#installing-a-new-machine)
+    - [Updating](#updating)
+    - [Checking that things are in sync](#checking-that-things-are-in-sync)
+    - [Packages](#packages)
+    - [Editors](#editors)
+    - [macOS preferences](#macos-preferences)
+    - [Local overrides](#local-overrides)
+    - [Design notes](#design-notes)
+    - [Acknowledgements](#acknowledgements)
 
 ## What is in here
 
