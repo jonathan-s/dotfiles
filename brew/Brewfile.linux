@@ -5,3 +5,14 @@
 # build, or one that needs a Linux-specific variant or tap. Server-exclusive
 # system packages (docker, dnsmasq, openssh-server, the login shell) belong in
 # ubuntu/apt/packages.sh — this file is not the place for them.
+
+# The compiler and build toolchain that a server still needs: enough to build a
+# Python extension, a Rust crate with native deps, or a project's CMake setup
+# without installing a distribution's full -dev set.
+brew "cmake"
+brew "ninja"
+brew "ccache"
+brew "pkgconf"
+brew "flex"
+brew "bison"
+brew "unzip"
