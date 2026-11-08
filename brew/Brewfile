@@ -11,8 +11,6 @@
 # On the server this is the toolchain half of the package rule; the other half
 # is ubuntu/apt/packages.sh, which keeps server-exclusive, security and
 # system-level packages (daemons, systemd units, login shells).
-tap "homebrew/core"
-tap "homebrew/services"
 tap "protonpass/tap"
 
 # Display directories as trees (with optional color/HTML output)
@@ -37,6 +35,8 @@ brew "htop"
 brew "moreutils"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node"
+# Python version management; the tools stage pins .python-version with it
+brew "pyenv"
 # Efficient zipping
 brew "sevenzip"
 # Static analysis and lint tool, for (ba)sh scripts
