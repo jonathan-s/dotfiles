@@ -103,12 +103,5 @@ setopt HIST_IGNORE_DUPS
 # removes blank lines from history
 setopt HIST_REDUCE_BLANKS
 
-# Correct spelling mistakes in your commands. Deliberate on a Mac, actively
-# unwanted on the server, where the shell is mostly used for exact commands.
-if [[ $OSTYPE == darwin* ]]; then
-	setopt CORRECT
-	setopt CORRECT_ALL
-fi
-
 # Allow [ or ] whereever you want
 unsetopt nomatch
