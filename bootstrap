@@ -44,6 +44,45 @@ done
 	exit 1
 }
 
+# Platform overlay. home/ is the shared tree; macos/home or ubuntu/home holds the
+# files that have no cross-platform form. The overlay is linked second and wins,
+# so a file only has to exist twice when it genuinely differs.
+platform_dir=
+case $(uname -s) in
+	Darwin) platform_dir=macos ;;
+	Linux) platform_dir=ubuntu ;;
+esac
+
+srcs=$src
+if [ -n "$platform_dir" ] && [ -d "$repo/$platform_dir/home" ]; then
+	srcs="$src $repo/$platform_dir/home"
+fi
+
+# Every tree this script may have linked from, whether or not it still exists.
+# A dangling link has to be recognisable after its source tree is removed, so
+# this list keeps the platform root even when the directory is gone.
+roots=$src
+[ -n "$platform_dir" ] && roots="$src $repo/$platform_dir/home"
+
+# Where a tracked file actually lives. Later roots win, which is the overlay.
+source_of() {
+	found=
+	for root in $srcs; do
+		[ -f "$root/$1" ] && found="$root/$1"
+	done
+	printf '%s' "$found"
+}
+
+# Is this symlink target one of our source trees?
+is_ours() {
+	for root in $roots; do
+		case $1 in
+			"$root"/*) return 0 ;;
+		esac
+	done
+	return 1
+}
+
 backup="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 list=$(mktemp)
 trap 'rm -f "$list"' EXIT INT TERM
@@ -54,8 +93,14 @@ if [ "$mode" = link ] && [ -d "$repo/.git" ] && [ -d "$repo/.githooks" ]; then
 	git -C "$repo" config core.hooksPath .githooks
 fi
 
-# Dotfiles only; .DS_Store files are noise and stay out of the way.
-find "$src" -name .DS_Store -prune -o -type f -print > "$list"
+# Dotfiles only; .DS_Store files are noise and stay out of the way. The list holds
+# $HOME-relative paths, deduplicated: the overlay copy of a path replaces the
+# shared one instead of being linked twice.
+{
+	for root in $srcs; do
+		find "$root" -name .DS_Store -prune -o -type f -print | sed "s|^$root/||"
+	done
+} | awk '!seen[$0]++' > "$list"
 
 report_status=0
 
@@ -66,7 +111,7 @@ report_problem() {
 run_report() {
 	report_links
 	report_git
-	report_macos
+	report_platform
 	if [ "$report_status" -eq 0 ]; then
 		echo "bootstrap: everything in sync"
 	else
@@ -79,10 +124,10 @@ report_links() {
 	good=0
 	bad=0
 	shadow=0
-	while IFS= read -r file; do
-		rel=${file#"$src"/}
+	while IFS= read -r rel; do
 		target="$HOME/$rel"
-		if [ -L "$target" ] && [ "$(readlink "$target")" = "$file" ]; then
+		want=$(source_of "$rel")
+		if [ -L "$target" ] && [ "$(readlink "$target")" = "$want" ]; then
 			good=$((good + 1))
 		elif [ -L "$target" ]; then
 			echo "  wrong target: ~/$rel -> $(readlink "$target")"
@@ -99,14 +144,11 @@ report_links() {
 		fi
 	done < "$list"
 
-	# Links into the repo whose source is gone (pruned files).
+	# Links into either source tree whose file is gone (pruned files).
 	for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
 		[ -L "$candidate" ] || continue
 		link=$(readlink "$candidate")
-		case $link in
-			"$src"/*) ;;
-			*) continue ;;
-		esac
+		is_ours "$link" || continue
 		[ -e "$link" ] && continue
 		echo "  dangling: ~/${candidate#"$HOME"/}"
 		bad=$((bad + 1))
@@ -136,12 +178,23 @@ report_git() {
 	fi
 }
 
-report_macos() {
-	[ "$(uname -s)" = Darwin ] || return 0
-	[ -x "$repo/macos/defaults.sh" ] || return 0
-	[ "${DOTFILES_SKIP_MACOS:-0}" = 1 ] && return 0
-	echo "macOS defaults"
-	out=$("$repo/macos/defaults.sh" --check 2>&1) || true
+report_platform() {
+	# Skipped by install, which applies the platform stage itself.
+	[ "${DOTFILES_SKIP_PLATFORM:-${DOTFILES_SKIP_MACOS:-0}}" = 1 ] && return 0
+	case $(uname -s) in
+		Darwin)
+			[ -x "$repo/macos/defaults.sh" ] || return 0
+			echo "macOS defaults"
+			script="$repo/macos/defaults.sh"
+			;;
+		Linux)
+			[ -x "$repo/ubuntu/setup.sh" ] || return 0
+			echo "Ubuntu setup"
+			script="$repo/ubuntu/setup.sh"
+			;;
+		*) return 0 ;;
+	esac
+	out=$("$script" --check 2>&1) || true
 	if printf '%s\n' "$out" | grep -q 'no drift'; then
 		echo "  no drift"
 		return 0
@@ -164,8 +217,7 @@ blocked=0
 # Check destinations before linking anything, so a bad path cannot leave a
 # half-linked home directory behind.
 if [ "$mode" = link ]; then
-	while IFS= read -r file; do
-		rel=${file#"$src"/}
+	while IFS= read -r rel; do
 		# Walk every existing ancestor: a file in the middle of the path
 		# breaks mkdir -p just as badly as a file at the leaf.
 		dir=$(dirname -- "$HOME/$rel")
@@ -184,9 +236,9 @@ if [ "$mode" = link ]; then
 	fi
 fi
 
-while IFS= read -r file; do
-	rel=${file#"$src"/}
+while IFS= read -r rel; do
 	target="$HOME/$rel"
+	file=$(source_of "$rel")
 
 	if [ -L "$target" ] && [ "$(readlink "$target")" = "$file" ]; then
 		ok=$((ok + 1))
@@ -229,10 +281,7 @@ done < "$list"
 for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
 	[ -L "$candidate" ] || continue
 	link=$(readlink "$candidate")
-	case $link in
-		"$src"/*) ;;
-		*) continue ;;
-	esac
+	is_ours "$link" || continue
 	[ -e "$link" ] && continue
 	if [ "$mode" = verify ]; then
 		echo "dangling:     ~/${candidate#"$HOME"/} (file is gone from the repo)"
@@ -244,15 +293,25 @@ for candidate in "$HOME"/.[!.]* "$HOME"/.config/* "$HOME"/.config/*/*; do
 	pruned=$((pruned + 1))
 done
 
-# macOS preferences, on Macs only. Stamped per module, so this is a no-op
-# unless one of the modules changed since the last successful apply.
-macos_status=0
-if [ "$mode" = link ] && [ "${DOTFILES_SKIP_MACOS:-0}" != 1 ] && [ -x "$repo/macos/defaults.sh" ]; then
+# Platform preferences: macOS defaults on a Mac, ubuntu/setup.sh on the server.
+# Both are stamped per module, so this is a no-op unless something changed.
+platform_status=0
+if [ "$mode" = link ] && [ "${DOTFILES_SKIP_PLATFORM:-${DOTFILES_SKIP_MACOS:-0}}" != 1 ]; then
 	case $(uname -s) in
 		Darwin)
-			"$repo/macos/defaults.sh" --quiet || {
-				echo "bootstrap: macos/defaults.sh failed" >&2
-				macos_status=1
+			[ -x "$repo/macos/defaults.sh" ] && {
+				"$repo/macos/defaults.sh" --quiet || {
+					echo "bootstrap: macos/defaults.sh failed" >&2
+					platform_status=1
+				}
+			}
+			;;
+		Linux)
+			[ -x "$repo/ubuntu/setup.sh" ] && {
+				"$repo/ubuntu/setup.sh" --quiet || {
+					echo "bootstrap: ubuntu/setup.sh failed" >&2
+					platform_status=1
+				}
 			}
 			;;
 	esac
@@ -276,4 +335,4 @@ case $mode in
 		;;
 esac
 
-[ "$macos_status" -eq 0 ] || exit 1
+[ "$platform_status" -eq 0 ] || exit 1
