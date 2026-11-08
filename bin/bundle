@@ -1,0 +1,36 @@
+#!/bin/sh
+# bin/bundle: run brew bundle over the tier files for this machine.
+#
+#   ./bin/bundle install | check | list | upgrade
+#
+# brew bundle has no include directive, and it only honours the last --file, so
+# the tiers for this platform are concatenated and piped in through --file=-.
+# dump, add, remove and cleanup need a real file and stay on brew/Brewfile.<platform>.
+
+set -eu
+
+repo=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+
+if [ $# -eq 0 ]; then
+	echo "usage: bin/bundle install|check|list|upgrade [args]" >&2
+	exit 2
+fi
+
+case $(uname -s) in
+	Darwin) tiers='Brewfile Brewfile.dev Brewfile.macos' ;;
+	Linux) tiers='Brewfile Brewfile.linux' ;;
+	*)
+		echo "bin/bundle: unsupported platform: $(uname -s)" >&2
+		exit 1
+		;;
+esac
+
+for tier in $tiers; do
+	[ -f "$repo/brew/$tier" ] || {
+		echo "bin/bundle: missing brew/$tier" >&2
+		exit 1
+	}
+done
+
+# shellcheck disable=SC2086  # the tier list is word-split on purpose
+(cd "$repo/brew" && cat $tiers) | brew bundle --file=- "$@"

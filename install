@@ -64,7 +64,7 @@ preflight() {
 	[ "$(uname -s)" = Darwin ] || { echo "install: macOS only" >&2; exit 1; }
 	command -v brew > /dev/null 2>&1 || { echo "install: Homebrew missing, see https://brew.sh" >&2; exit 1; }
 	command -v git > /dev/null 2>&1 || { echo "install: git missing" >&2; exit 1; }
-	[ -f "$repo/Brewfile" ] || { echo "install: Brewfile missing" >&2; exit 1; }
+	[ -f "$repo/brew/Brewfile" ] || { echo "install: brew/Brewfile missing" >&2; exit 1; }
 	if [ "$1" = check ]; then
 		git -C "$repo" diff --quiet || echo "note: working tree is dirty"
 	else
@@ -74,9 +74,9 @@ preflight() {
 
 packages() {
 	if [ "$1" = check ]; then
-		brew bundle check --file="$repo/Brewfile" --verbose
+		"$repo/bin/bundle" check --verbose
 	else
-		brew bundle install --file="$repo/Brewfile"
+		"$repo/bin/bundle" install
 	fi
 }
 
