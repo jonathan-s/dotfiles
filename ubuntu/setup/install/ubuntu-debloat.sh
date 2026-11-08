@@ -92,7 +92,7 @@ preflight() {
 # ──────────────────────────────────────────────
 
 remove_snap() {
-    heading "[1/6] Removing Snap packages and snapd"
+    heading "[1/5] Removing Snap packages and snapd"
 
     log_info "Making sure snapd socket is running (needed for clean removal)..."
     run systemctl start snapd.socket snapd.service 2>/dev/null || true
@@ -156,7 +156,7 @@ EOM'
 # ──────────────────────────────────────────────
 
 remove_apt_bloat() {
-    heading "[2/6] Removing unwanted APT packages"
+    heading "[2/5] Removing unwanted APT packages"
 
     BLOAT_PACKAGES=(
         # Browsers (we'll install alternatives later)
@@ -237,29 +237,20 @@ remove_apt_bloat() {
 # ──────────────────────────────────────────────
 
 install_tools() {
-    heading "[3/6] Installing essential tools and applications"
+    heading "[3/5] Installing essential tools and applications"
 
     run apt update
 
-    # Development essentials
-    DEV_PACKAGES=(
-        build-essential cmake ninja-build git ccache
-        python3 python3-pip python3-venv python3-full pipx
-        flex bison gperf libffi-dev libssl-dev pkg-config
-        unzip xz-utils
-    )
-
-    # Clang/LLVM toolchain
-    LLVM_PACKAGES=(
-        clang clangd clang-format clang-tools clang-tidy lld
-    )
-
-    # USB and serial tools
+    # Serial console and hardware inspection. The compiler toolchain is not
+    # here: build tools come from brew/Brewfile and brew/Brewfile.linux, per the
+    # package rule in the dotfiles README.
     USB_PACKAGES=(
-        dfu-util libusb-1.0-0 minicom picocom screen usbutils
+        minicom picocom screen usbutils
     )
 
-    # Desktop tools
+    # Desktop: fonts, GNOME utilities and the media stack the session expects.
+    # None of these has a Homebrew formula, and apt's ffmpeg is the build that
+    # matches the distribution's codecs.
     DESKTOP_PACKAGES=(
         gnome-tweaks gnome-software
         synaptic
@@ -269,8 +260,6 @@ install_tools() {
     )
 
     ALL_PACKAGES=(
-        "${DEV_PACKAGES[@]}"
-        "${LLVM_PACKAGES[@]}"
         "${USB_PACKAGES[@]}"
         "${DESKTOP_PACKAGES[@]}"
     )
@@ -290,34 +279,11 @@ install_tools() {
 }
 
 # ──────────────────────────────────────────────
-# Step 4: Install browser (Brave)
-# ──────────────────────────────────────────────
-
-install_browser() {
-    heading "[4/6] Installing Brave browser"
-
-    if command -v brave-browser &>/dev/null; then
-        log_info "Brave browser is already installed. Skipping."
-        return
-    fi
-
-    log_info "Adding Brave repository..."
-    run curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-        https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
-        | run tee /etc/apt/sources.list.d/brave-browser-release.list
-
-    run apt update
-    run apt install --no-install-recommends -y brave-browser
-    log_ok "Brave browser installed."
-}
-
-# ──────────────────────────────────────────────
-# Step 5: Configure GNOME settings
+# Step 4: Configure GNOME settings
 # ──────────────────────────────────────────────
 
 configure_gnome() {
-    heading "[5/6] Configuring GNOME desktop settings"
+    heading "[4/5] Configuring GNOME desktop settings"
 
     # Disable middle-click paste (common annoyance)
     run gsettings set org.gnome.desktop.interface gtk-enable-primary-paste false 2>/dev/null || true
@@ -338,11 +304,11 @@ configure_gnome() {
 }
 
 # ──────────────────────────────────────────────
-# Step 6: Final cleanup
+# Step 5: Final cleanup
 # ──────────────────────────────────────────────
 
 final_cleanup() {
-    heading "[6/6] Final cleanup"
+    heading "[5/5] Final cleanup"
 
     # Remove orphaned packages
     log_info "Removing orphaned dependencies..."
@@ -380,8 +346,7 @@ print_summary() {
     heading "Summary"
     echo "  Snap:         Removed and pinned"
     echo "  APT bloat:    Purged"
-    echo "  Tools:        Installed (build, dev, serial, desktop)"
-    echo "  Browser:      Brave"
+    echo "  Tools:        Installed (serial, desktop)"
     echo "  GNOME:        Configured for productivity"
     echo "  Cleanup:      Orphans purged, logs trimmed, cache cleaned"
     echo ""
@@ -430,7 +395,6 @@ main() {
     remove_snap
     remove_apt_bloat
     install_tools
-    install_browser
     configure_gnome
     final_cleanup
     print_summary
