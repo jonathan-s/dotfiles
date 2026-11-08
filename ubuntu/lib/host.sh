@@ -16,7 +16,7 @@ host_file="$repo/ubuntu/hosts/$host_name.sh"
 
 if [ ! -r "$host_file" ]; then
 	echo "host: missing $host_file" >&2
-	echo "host: copy ubuntu/hosts/host.example.sh to it and fill it in" >&2
+	echo "host: copy the tracked example in ubuntu/hosts/ to that name and fill it in" >&2
 	# Sourced by our scripts, so this returns; running the file directly is the
 	# only way to reach the exit, and it is a mistake worth failing on.
 	return 1
