@@ -57,5 +57,9 @@ sudo apt install -y i3
 sudo apt install -y tilix
 sudo apt install -y ulauncher
 
-# Ghostty is not in any apt repository; the installer builds a .deb.
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+# Ghostty is not in any apt repository; the installer builds a .deb. It is
+# guarded because that installer fetches the latest release every time, and an
+# idempotent manifest must not upgrade the terminal emulator on every run.
+if ! command -v ghostty > /dev/null 2>&1; then
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+fi
