@@ -1,11 +1,13 @@
 # Environment for every zsh, login or not.
 # Interactive-only things (oh-my-zsh, completions, aliases) belong in .zshrc.
 
-# Homebrew (Apple Silicon first, then Intel for older machines).
+# Homebrew, wherever it lives: Apple Silicon, Intel, then Linuxbrew.
 if [[ -x /opt/homebrew/bin/brew ]]; then
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 elif [[ -x /usr/local/bin/brew ]]; then
 	eval "$(/usr/local/bin/brew shellenv)"
+elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
 # Some brew env variables we want to use.
@@ -49,4 +51,6 @@ export PIP_CERT=/etc/ssl/cert.pem
 
 # libpq (Homebrew, keg-only) — lets psycopg's pure-Python ctypes binding find
 # libpq.dylib for host-side Django/pytest runs. Not on the default dyld path.
-export DYLD_FALLBACK_LIBRARY_PATH="/opt/homebrew/opt/libpq/lib${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"
+if [[ $OSTYPE == darwin* ]]; then
+	export DYLD_FALLBACK_LIBRARY_PATH="/opt/homebrew/opt/libpq/lib${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"
+fi

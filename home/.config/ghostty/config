@@ -57,7 +57,7 @@ term = xterm-256color
 
 # --- Shell (iTerm2 forced /bin/zsh; ghostty otherwise inherits the login
 #     shell, which is Homebrew bash on this machine) ---
-command = /bin/zsh
+# The login shell is zsh on both machines, so ghostty inherits it.
 
 # --- Colours (iTerm2 "Default"/Floraverse palette, converted to hex) ---
 background = #0E0D15

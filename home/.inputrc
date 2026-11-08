@@ -1,3 +1,8 @@
+# Readline is shared by bash, psql, python's REPL and anything else using it.
+# Linux distributions ship defaults worth keeping, so include their file first;
+# readline ignores a missing $include silently, which makes this portable.
+$include /etc/inputrc
+
 # Make Tab autocomplete regardless of filename case
 set completion-ignore-case on
 
