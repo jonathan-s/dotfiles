@@ -92,7 +92,7 @@ preflight() {
 # ──────────────────────────────────────────────
 
 remove_snap() {
-    heading "[1/5] Removing Snap packages and snapd"
+    heading "[1/4] Removing Snap packages and snapd"
 
     log_info "Making sure snapd socket is running (needed for clean removal)..."
     run systemctl start snapd.socket snapd.service 2>/dev/null || true
@@ -156,7 +156,7 @@ EOM'
 # ──────────────────────────────────────────────
 
 remove_apt_bloat() {
-    heading "[2/5] Removing unwanted APT packages"
+    heading "[2/4] Removing unwanted APT packages"
 
     BLOAT_PACKAGES=(
         # Browsers (we'll install alternatives later)
@@ -233,57 +233,11 @@ remove_apt_bloat() {
 }
 
 # ──────────────────────────────────────────────
-# Step 3: Install essential tools and apps
-# ──────────────────────────────────────────────
-
-install_tools() {
-    heading "[3/5] Installing essential tools and applications"
-
-    run apt update
-
-    # Serial console and hardware inspection. The compiler toolchain is not
-    # here: build tools come from brew/Brewfile and brew/Brewfile.linux, per the
-    # package rule in the dotfiles README.
-    USB_PACKAGES=(
-        minicom picocom screen usbutils
-    )
-
-    # Desktop: fonts, GNOME utilities and the media stack the session expects.
-    # None of these has a Homebrew formula, and apt's ffmpeg is the build that
-    # matches the distribution's codecs.
-    DESKTOP_PACKAGES=(
-        gnome-tweaks gnome-software
-        synaptic
-        fonts-noto fonts-noto-cjk fonts-firacode
-        ffmpeg
-        gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
-    )
-
-    ALL_PACKAGES=(
-        "${USB_PACKAGES[@]}"
-        "${DESKTOP_PACKAGES[@]}"
-    )
-
-    log_info "Installing ${#ALL_PACKAGES[@]} packages with --no-install-recommends..."
-    run apt install --no-install-recommends -y "${ALL_PACKAGES[@]}"
-
-    # Add user to dialout group for serial access
-    local actual_user
-    actual_user="${SUDO_USER:-$USER}"
-    if [ "$actual_user" != "root" ]; then
-        run usermod -aG dialout "$actual_user"
-        log_info "Added '$actual_user' to 'dialout' group (effective after re-login)."
-    fi
-
-    log_ok "Tools installed."
-}
-
-# ──────────────────────────────────────────────
-# Step 4: Configure GNOME settings
+# Step 3: Configure GNOME settings
 # ──────────────────────────────────────────────
 
 configure_gnome() {
-    heading "[4/5] Configuring GNOME desktop settings"
+    heading "[3/4] Configuring GNOME desktop settings"
 
     # Disable middle-click paste (common annoyance)
     run gsettings set org.gnome.desktop.interface gtk-enable-primary-paste false 2>/dev/null || true
@@ -304,11 +258,11 @@ configure_gnome() {
 }
 
 # ──────────────────────────────────────────────
-# Step 5: Final cleanup
+# Step 4: Final cleanup
 # ──────────────────────────────────────────────
 
 final_cleanup() {
-    heading "[5/5] Final cleanup"
+    heading "[4/4] Final cleanup"
 
     # Remove orphaned packages
     log_info "Removing orphaned dependencies..."
@@ -346,7 +300,6 @@ print_summary() {
     heading "Summary"
     echo "  Snap:         Removed and pinned"
     echo "  APT bloat:    Purged"
-    echo "  Tools:        Installed (serial, desktop)"
     echo "  GNOME:        Configured for productivity"
     echo "  Cleanup:      Orphans purged, logs trimmed, cache cleaned"
     echo ""
@@ -394,7 +347,6 @@ main() {
 
     remove_snap
     remove_apt_bloat
-    install_tools
     configure_gnome
     final_cleanup
     print_summary
