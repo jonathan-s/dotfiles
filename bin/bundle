@@ -11,6 +11,13 @@ set -eu
 
 repo=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 
+# Homebrew is not on PATH in a non-login shell on Linux, and this script is
+# meant to work from cron and CI as well as from an interactive shell.
+if ! command -v brew > /dev/null 2>&1 && [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+command -v brew > /dev/null 2>&1 || { echo "bin/bundle: Homebrew not found" >&2; exit 1; }
+
 if [ $# -eq 0 ]; then
 	echo "usage: bin/bundle install|check|list|upgrade [args]" >&2
 	exit 2
