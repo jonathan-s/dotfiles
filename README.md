@@ -61,7 +61,7 @@ assumes Homebrew and a complete host file:
 
 ```bash
 sudo bash ubuntu/apt/packages.sh        # daemons, system units, login shell, desktop
-cp ubuntu/hosts/host.example.sh ubuntu/hosts/$(hostname -s).sh
+cp ubuntu/hosts/host.example.sh ubuntu/hosts/host.sh
 $EDITOR ubuntu/hosts/$(hostname -s).sh  # see Host values
 sudo bash ubuntu/setup/bootstrap.sh     # packages, then ./install, then hostname/sshd/keyboard
 ```
@@ -110,7 +110,8 @@ Two things decide where a file lives.
 only when the two platforms genuinely differ, and a path is still owned by exactly one repo.
 
 **Shared files test their own platform.** A file that is 90% common (`~/.zshrc`, `~/.zshenv`)
-carries a small `$OSTYPE` test or an existence check instead of being copied. `~/.gitconfig`
+tests for itself — an existence check for a tool, a `$OSTYPE` test for a platform-only
+path — instead of being copied. `~/.gitconfig`
 needs neither: `git-delta` is installed on both machines and both use the same ignore file.
 
 ## Host values
@@ -122,7 +123,7 @@ The values live in one gitignored file per machine, and every script reads them 
 
 ```text
 ubuntu/hosts/host.example.sh   tracked; the contract, placeholders only
-ubuntu/hosts/elementary-holo.sh           local, gitignored, real values
+ubuntu/hosts/host.sh           local, gitignored, real values
 ubuntu/lib/host.sh                        sourced loader
 ```
 
@@ -134,8 +135,8 @@ forgotten value is obvious in a diff and `./install --check` fails instead of co
 ## Packages
 
 `brew/Brewfile` is the minimal tier for every machine. `brew/Brewfile.dev` and
-`brew/Brewfile.macos` are the macOS surface, and `brew/Brewfile.linux` is empty by design: what
-a server needs from Homebrew is cross-platform, and anything server-exclusive belongs to apt.
+`brew/Brewfile.macos` are the macOS surface, and `brew/Brewfile.linux` holds the few build tools a
+server needs; anything server-exclusive belongs to apt.
 
 `brew bundle` has no `include`, and it only honours the last `--file`, so `bin/bundle`
 concatenates this platform's tiers and pipes them in:
@@ -174,7 +175,7 @@ The home server runs Ubuntu and shares the same dotfiles. The split is a rule, n
 | `setup.sh`            | the platform stage: host values and the daily history expiry                        |
 | `setup/router-dns.sh` | wildcard LAN DNS; runs on the OpenWrt router, takes its values from the environment |
 | `setup/docker-dns.sh` | points Docker at the router's DNS, recreates Dokku apps                             |
-| `setup/install/`      | partitioning, LUKS, chroot, debloat and tuning, plus `GUIDE.md`                     |
+| `setup/install/`      | partitioning, LUKS, chroot, debloat and tuning                                      |
 
 Dokku, the deployed apps and the running history of the box are not here; those live in a
 private homelab repo that consumes this one.
