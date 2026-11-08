@@ -87,7 +87,6 @@ brew "pandoc"
 # Tool for managing OCI containers and pods
 brew "podman"
 # Python version management
-brew "pyenv"
 # Pyenv plugin to manage virtualenv
 brew "pyenv-virtualenv"
 # Persistent key-value database, with built-in net interface

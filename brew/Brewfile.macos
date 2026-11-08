@@ -2,6 +2,8 @@
 # formulae that are `depends_on :macos` or shadowed by the system. Never
 # installed on Linux.
 tap "bramstein/webfonttools"
+tap "homebrew/core"
+tap "homebrew/services"
 tap "gromgit/fuse"
 tap "homebrew/cask"
 
