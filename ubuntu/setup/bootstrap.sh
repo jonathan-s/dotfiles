@@ -132,7 +132,7 @@ ok "keyboard layout set."
 section "done"
 echo
 info "Next steps:"
-echo "  - router wildcard DNS:  on the router, with LAN_* from ubuntu/hosts/$HOST_NAME.sh"
+echo "  - router wildcard DNS:  on the router, with LAN_* from ubuntu/hosts/host.sh"
 echo "  - docker DNS:           sudo bash $repo/ubuntu/setup/docker-dns.sh"
 echo "  - dokku and the apps:   homelab/setup/setup-dokku.sh"
 echo "  - verify the machine:   $repo/bootstrap --report"

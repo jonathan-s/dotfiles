@@ -4,33 +4,33 @@
 #   repo=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)
 #   . "$repo/ubuntu/lib/host.sh"
 #
-# Every address, domain and account name a script needs comes from here, so no
-# script in this repo carries one. The real file is gitignored because this repo
-# is public; ubuntu/hosts/host.example.sh documents the contract and
-# is the file to copy on a new machine.
+# The filename is fixed on purpose: ubuntu/hosts/host.sh is the one place values
+# live, on every machine. It is gitignored because this repo is public, and
+# ubuntu/hosts/host.example.sh is the tracked contract to copy. Deriving the
+# name from the hostname was clever at the cost of being obvious.
+#
+# Every address, domain and account name a script needs comes from that file, so
+# no script in this repo carries one.
 
 : "${repo:?ubuntu/lib/host.sh: set \$repo to the dotfiles checkout first}"
 
-host_name=${DOTFILES_HOST:-$(hostname -s 2>/dev/null || hostname)}
-host_file="$repo/ubuntu/hosts/$host_name.sh"
+host_file="$repo/ubuntu/hosts/host.sh"
 
 if [ ! -r "$host_file" ]; then
 	echo "host: missing $host_file" >&2
-	echo "host: copy the tracked example in ubuntu/hosts/ to that name and fill it in" >&2
-	# Sourced by our scripts, so this returns; running the file directly is the
-	# only way to reach the exit, and it is a mistake worth failing on.
+	echo "host: cp ubuntu/hosts/host.example.sh ubuntu/hosts/host.sh and fill it in" >&2
 	return 1
 fi
 
-# shellcheck source=/dev/null  # the real file is gitignored and machine-local
+# shellcheck source=/dev/null  # gitignored, machine-local
 . "$host_file"
 
-# True when a value is still the placeholder from the example file. The example
-# uses documentation ranges (RFC 5737, example.com), so this cannot fire on a
-# real configuration by accident.
+# True when a value is still a placeholder from the example file. The example
+# uses documentation ranges (RFC 5737) and example.* names, so this cannot fire
+# on a real configuration by accident.
 host_placeholder() {
 	case ${1-} in
-		'' | *example* | 192.0.2.* | 198.51.100.* | 203.0.113.*) return 0 ;;
+		'' | *example* | *Example* | 192.0.2.* | 198.51.100.* | 203.0.113.*) return 0 ;;
 	esac
 	return 1
 }
@@ -47,5 +47,5 @@ host_check() {
 		echo "placeholder in $host_file:$missing" >&2
 		return 1
 	fi
-	echo "host values: $host_name"
+	echo "host values: $host_file"
 }
