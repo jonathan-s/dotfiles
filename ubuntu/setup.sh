@@ -25,8 +25,9 @@ for arg in "$@"; do
 		--quiet) mode=quiet ;;
 		--list)
 			cat <<'EOF'
-host-values   ubuntu/hosts/<hostname>.sh has no placeholders left
+host-values   ubuntu/hosts/host.sh has no placeholders left
 crontab       @daily bin/expire-history.sh for the login user
+apt-auto      the distribution's daily unattended upgrades are switched on
 EOF
 			exit 0
 			;;
@@ -95,6 +96,35 @@ else
 		printf '%s\n' "$cron_line"
 	} | sed '/^[[:space:]]*$/d' | crontab_write
 	say "crontab: history expiry installed"
+fi
+
+# ─── daily unattended upgrades ───────────────────────────────────────────────
+# Ubuntu ships unattended-upgrades and enables apt-daily.timer and
+# apt-daily-upgrade.timer, so there is nothing to configure here and no cron to
+# install: a second updater would only contend for the apt lock. What is worth
+# checking is that the mechanism is still switched on, since `dpkg-reconfigure
+# unattended-upgrades` answering "no" turns it off and nothing else notices.
+apt_periodic_get() {
+	apt-config dump APT::Periodic 2> /dev/null |
+		sed -n "s/^APT::Periodic::$1 \"\(.*\)\";$/\1/p"
+}
+
+apt_auto_off=
+for key in Update-Package-Lists Unattended-Upgrade; do
+	[ "$(apt_periodic_get "$key")" = 1 ] || apt_auto_off="$apt_auto_off $key"
+done
+if command -v systemctl > /dev/null 2>&1; then
+	for unit in apt-daily.timer apt-daily-upgrade.timer; do
+		systemctl is-enabled --quiet "$unit" 2> /dev/null || apt_auto_off="$apt_auto_off $unit"
+	done
+fi
+
+if [ -z "$apt_auto_off" ]; then
+	[ "$mode" = quiet ] || say "apt-auto: daily unattended upgrades enabled"
+else
+	echo "apt-auto: switched off:$apt_auto_off" >&2
+	echo "          fix with: sudo dpkg-reconfigure -plow unattended-upgrades" >&2
+	problem
 fi
 
 if [ "$mode" = check ]; then
