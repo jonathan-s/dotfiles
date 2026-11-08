@@ -3,7 +3,7 @@
 #
 #   ./install                 apply every stage
 #   ./install --check         report drift, change nothing; non-zero if anything is off
-#   ./install --only links    run a single stage (preflight packages tools links macos shell)
+#   ./install --only links    run a single stage (preflight packages tools links platform shell)
 #   ./install -h              this text
 
 set -eu
@@ -34,7 +34,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-stages='preflight packages tools links macos shell'
+stages='preflight packages tools links platform shell'
 
 if [ -n "$only" ]; then
 	case " $stages " in
@@ -61,10 +61,33 @@ run_stage() {
 
 # Fail early, change nothing.
 preflight() {
-	[ "$(uname -s)" = Darwin ] || { echo "install: macOS only" >&2; exit 1; }
+	case $(uname -s) in
+		Darwin | Linux) ;;
+		*)
+			echo "install: unsupported platform: $(uname -s)" >&2
+			exit 1
+			;;
+	esac
+
+	# Linuxbrew is not on PATH in a non-login shell, and preflight runs before
+	# the dotfiles are linked.
+	if ! command -v brew > /dev/null 2>&1 && [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+		eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+	fi
+
 	command -v brew > /dev/null 2>&1 || { echo "install: Homebrew missing, see https://brew.sh" >&2; exit 1; }
 	command -v git > /dev/null 2>&1 || { echo "install: git missing" >&2; exit 1; }
 	[ -f "$repo/brew/Brewfile" ] || { echo "install: brew/Brewfile missing" >&2; exit 1; }
+
+	# A Linux box needs its host values before anything can be configured with
+	# them. On macOS there is nothing to check: macos/hosts/ is only read by the
+	# --system stage of the defaults runner.
+	if [ "$(uname -s)" = Linux ]; then
+		# shellcheck source=/dev/null  # gitignored, machine-local
+		. "$repo/ubuntu/lib/host.sh"
+		[ "$1" = check ] && host_check
+	fi
+
 	if [ "$1" = check ]; then
 		git -C "$repo" diff --quiet || echo "note: working tree is dirty"
 	else
@@ -128,19 +151,31 @@ links() {
 	fi
 }
 
-macos() {
-	[ "$(uname -s)" = Darwin ] || return 0
-	[ -x "$repo/macos/defaults.sh" ] || return 0
+platform() {
+	case $(uname -s) in
+		Darwin) script="$repo/macos/defaults.sh" ;;
+		Linux) script="$repo/ubuntu/setup.sh" ;;
+		*) return 0 ;;
+	esac
+	[ -x "$script" ] || return 0
 	if [ "$1" = check ]; then
-		"$repo/macos/defaults.sh" --check
+		"$script" --check
 	else
-		"$repo/macos/defaults.sh" --quiet
+		"$script" --quiet
 	fi
 }
 
 shell() {
-	want=/bin/zsh
-	current=$(dscl . -read "$HOME" UserShell | awk '{print $2}')
+	case $(uname -s) in
+		Darwin)
+			want=/bin/zsh
+			current=$(dscl . -read "$HOME" UserShell | awk '{print $2}')
+			;;
+		Linux)
+			want=/usr/bin/zsh
+			current=$(getent passwd "$(id -un)" | cut -d: -f7)
+			;;
+	esac
 	if [ "$current" = "$want" ]; then
 		[ "$1" = check ] && echo "login shell: $current"
 		return 0
