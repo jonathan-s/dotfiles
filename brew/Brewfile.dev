@@ -1,0 +1,129 @@
+# Extended toolchain, macOS only.
+#
+# This is what makes a Mac a development machine: compilers, converters, media
+# tools, language runtimes and the zsh plumbing. Servers get the minimal
+# Brewfile instead, so nothing here needs a Linux twin unless Brewfile.linux
+# says otherwise.
+tap "heroku/brew"
+
+# Automate deployment, configuration, and upgrading
+brew "ansible"
+# OpenType text shaping engine
+brew "harfbuzz"
+# Text processor and publishing toolchain for AsciiDoc
+brew "asciidoctor"
+# Tool for generating GNU Standards-compliant Makefiles
+brew "automake"
+# Modern, simple TCP tunnel in Rust that exposes local ports to a remote server
+brew "bore-cli"
+# Validating, recursive, caching DNS resolver
+brew "unbound"
+# Emacs dependency management
+brew "cask"
+# Create and view interactive cheat sheets for *nix commands
+brew "cheat"
+# Cloudflare Tunnel client (formerly Argo Tunnel)
+brew "cloudflared"
+# Cross-platform make
+brew "cmake"
+# Load/unload environment variables based on $PWD
+brew "direnv"
+# Collection of reusable C++ library artifacts developed at Facebook
+brew "folly"
+# C++14 implementation of the TLS-1.3 standard
+brew "fizz"
+# Modular, composable client/server abstractions framework
+brew "wangle"
+# Facebook's branch of Apache Thrift, including a new C++ server
+brew "fbthrift"
+# Thrift functions for querying information from a service
+brew "fb303"
+# Shared library for Watchman and Eden projects
+brew "edencommon"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# Collection of GNU find, xargs, and locate
+brew "findutils"
+# Monitor a directory for changes and run a shell command
+brew "fswatch"
+# WebDriver <-> Marionette proxy
+brew "geckodriver"
+# Framework for layout and rendering of i18n text
+brew "pango"
+# Interpreter for PostScript and PDF
+brew "ghostscript"
+# Git extension for versioning large files
+brew "git-lfs"
+# Simple and efficient way to access statistics in git
+brew "git-quick-stats"
+# Alternative to top/htop
+brew "glances"
+# Library for USB device access
+brew "libusb"
+# GNU Privacy Guard (OpenPGP)
+brew "gnupg"
+# Generate introspection data for GObject libraries
+brew "gobject-introspection"
+# Library to render SVG files using Cairo
+brew "librsvg"
+# Graph visualization software from AT&T and Bell Labs
+brew "graphviz"
+# User-friendly cURL replacement (command-line HTTP client)
+brew "httpie"
+# ISO/IEC 23008-12:2017 HEIF file format decoder and encoder
+brew "libheif"
+# Tools and libraries to manipulate images in select formats
+brew "imagemagick"
+# Implementation of the file(1) command
+brew "libmagic"
+# Postgres C API library
+brew "libpq"
+# Port scanning utility for large networks
+brew "nmap"
+# Manage multiple Node.js versions
+brew "nvm"
+# Swiss-army knife of markup format conversion
+brew "pandoc"
+# Tool for managing OCI containers and pods
+brew "podman"
+# Python version management
+brew "pyenv"
+# Pyenv plugin to manage virtualenv
+brew "pyenv-virtualenv"
+# Persistent key-value database, with built-in net interface
+brew "redis"
+# Extremely fast Python linter, written in Rust
+brew "ruff"
+# SMART hard drive monitoring
+brew "smartmontools"
+# SOund eXchange: universal sound sample translator
+brew "sox"
+# Add a public key to a remote machine's authorized_keys file
+brew "ssh-copy-id"
+# Non-interactive SSH password auth
+brew "sshpass"
+# Watch files and take action when they change
+brew "watchman"
+# Utilities to create and convert Web Open Font File (WOFF) files
+brew "woff2"
+# JavaScript package manager
+brew "yarn"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# New zlib (gzip, deflate) compatible compressor
+brew "zopfli"
+cargo "aoc-cli"
+cargo "cargo-binstall"
+cargo "cargo-insta"
+cargo "cargo-llvm-cov"
+cargo "cargo-watch"
+cargo "create-tauri-app"
+cargo "djade"
+cargo "htmd-cli"
+cargo "rustowl"
+uv "mitmproxy"
+npm "deno"
+npm "five-server"
+npm "prettier"
+npm "purgecss"
+npm "bun"

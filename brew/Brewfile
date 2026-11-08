@@ -1,0 +1,72 @@
+# Minimal tier: installed on every machine, macOS and Linux servers alike.
+#
+#   ./bin/bundle install|check|list|upgrade   concatenates the tiers for this OS
+#   brew bundle dump --file=brew/Brewfile.<platform> --force
+#
+# Only cross-platform things belong here: no casks, no editor extensions,
+# nothing that is macOS-only or Linux-only. Toolchain for a development machine
+# goes to Brewfile.dev, the macOS app surface to Brewfile.macos, Linux-only
+# entries to Brewfile.linux.
+#
+# On the server this is the toolchain half of the package rule; the other half
+# is ubuntu/apt/packages.sh, which keeps server-exclusive, security and
+# system-level packages (daemons, systemd units, login shells).
+tap "homebrew/core"
+tap "homebrew/services"
+tap "protonpass/tap"
+
+# Display directories as trees (with optional color/HTML output)
+brew "tree"
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
+# Simple, fast and user-friendly alternative to find
+brew "fd"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# GitHub command-line tool
+brew "gh"
+# Distributed revision control system
+brew "git"
+# Syntax-highlighting pager for git and diff output
+brew "git-delta"
+# GNU grep, egrep and fgrep
+brew "grep"
+# Improved top (interactive process viewer)
+brew "htop"
+# Collection of tools that nobody wrote when UNIX was young
+brew "moreutils"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Efficient zipping
+brew "sevenzip"
+# Static analysis and lint tool, for (ba)sh scripts
+brew "shellcheck"
+# Autoformat shell script source code
+brew "shfmt"
+# Parallel gzip
+brew "pigz"
+# Monitor data's progress through a pipe
+brew "pv"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Terminal multiplexer
+brew "tmux"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Vi 'workalike' with many additional features
+brew "vim"
+# Internet file retriever
+brew "wget"
+# Process YAML, JSON, XML, CSV and properties documents from the CLI
+brew "yq"
+# Shell extension to navigate your filesystem faster
+brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-syntax-highlighting"
+# Proton Pass CLI - Command-line interface for Proton Pass
+brew "protonpass/tap/pass-cli", trusted: true
+npm "@earendil-works/pi-coding-agent"
+# Interactive process viewer; apt used to own this on the server
+brew "btop"

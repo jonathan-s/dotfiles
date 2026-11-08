@@ -1,0 +1,143 @@
+# macOS-only surface: casks, editor extensions, Mac App Store apps, and the
+# formulae that are `depends_on :macos` or shadowed by the system. Never
+# installed on Linux.
+tap "bramstein/webfonttools"
+tap "gromgit/fuse"
+tap "homebrew/cask"
+
+# Mac App Store command-line interface
+brew "mas"
+# OpenBSD freely-licensed SSH connectivity tools
+brew "openssh"
+# CLI tool that moves files or folder to the trash
+brew "trash"
+# FUSE file system for mounting to another location
+brew "gromgit/fuse/bindfs-mac", trusted: true
+# Application launcher and productivity software
+cask "alfred"
+# Toolset to implement parts of Android apps in native code
+cask "android-ndk"
+# Android SDK component
+cask "android-platform-tools"
+# Tools for building Android applications
+cask "android-studio"
+# Hard disk backup and cloning utility
+cask "carbon-copy-cloner"
+# PDF file editor
+cask "combine-pdfs"
+# Universal database tool and SQL client
+cask "dbeaver-community"
+# Voice and text chat software
+cask "discord"
+# Disk usage utility
+cask "disk-inventory-x"
+cask "exodus"
+# Web browser
+cask "firefox@developer-edition"
+# Screen colour temperature controller
+cask "flux-app"
+cask "font-fira-code-nerd-font"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
+# Open-source video transcoder
+cask "handbrake-app"
+# Tool to run Windows games
+cask "highball"
+# Open-source screen recorder built with web technology
+cask "kap"
+# Free and open-source office suite
+cask "libreoffice"
+# Host-based application firewall
+cask "little-snitch"
+# Knowledge base that works on top of a local folder of plain text Markdown files
+cask "obsidian"
+# App wrapper for Postgres
+cask "postgres-app"
+# GUI client for PostgreSQL databases
+cask "postico"
+# Move and resize windows using keyboard shortcuts or snap areas
+cask "rectangle"
+# Block your own access to distracting websites
+cask "selfcontrol"
+# Instant messaging application focusing on security
+cask "signal"
+# PDF reader and note-taking application
+cask "skim"
+# Team communication and collaboration software
+cask "slack"
+# System monitor for the menu bar
+cask "stats"
+# Video game digital distribution service
+cask "steam"
+# Messaging app with a focus on speed and security
+cask "telegram"
+# Open-source BitTorrent client
+cask "transmission"
+# Free and open-source OpenVPN client
+cask "tunnelblick"
+# Multimedia player
+cask "vlc"
+# Torrent streaming application
+cask "webtorrent"
+# Video communication and virtual meeting platform
+cask "zoom"
+vscode "aeschli.vscode-css-formatter"
+vscode "asciidoctor.asciidoctor-vscode"
+vscode "charliermarsh.ruff"
+vscode "christian-kohler.path-intellisense"
+vscode "cordx56.rustowl-vscode"
+vscode "cpylua.language-postcss"
+vscode "denoland.vscode-deno"
+vscode "docker.docker"
+vscode "donjayamanne.githistory"
+vscode "donjayamanne.python-environment-manager"
+vscode "dotjoshjohnson.xml"
+vscode "dustypomerleau.rust-syntax"
+vscode "emeraldwalk.runonsave"
+vscode "fabiospampinato.vscode-diff"
+vscode "formulahendry.auto-close-tag"
+vscode "formulahendry.auto-complete-tag"
+vscode "formulahendry.auto-rename-tag"
+vscode "gerane.theme-brogrammer"
+vscode "golang.go"
+vscode "gruntfuggly.todo-tree"
+vscode "hedinne.popping-and-locking-vscode"
+vscode "idleberg.hopscotch"
+vscode "jonathan-yeung.mark-sharp"
+vscode "jscearcy.rust-doc-viewer"
+vscode "marp-team.marp-vscode"
+vscode "mohsen1.prettify-json"
+vscode "monosans.djlint"
+vscode "mrmlnc.vscode-attrs-sorter"
+vscode "ms-azuretools.vscode-containers"
+vscode "ms-azuretools.vscode-docker"
+vscode "ms-python.debugpy"
+vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "ms-python.vscode-python-envs"
+vscode "ms-vscode.sublime-keybindings"
+vscode "ms-vscode.wordcount"
+vscode "ms-vsliveshare.vsliveshare"
+vscode "patbenatar.advanced-new-file"
+vscode "robbowen.synthwave-vscode"
+vscode "robertoachar.vscode-essentials-snippets"
+vscode "rust-lang.rust-analyzer"
+vscode "ryu1kn.partial-diff"
+vscode "samwillis.python-inline-source"
+vscode "scala-lang.scala"
+vscode "sensourceinc.vscode-sql-beautify"
+vscode "shd101wyy.markdown-preview-enhanced"
+vscode "shelex.vscode-cy-helper"
+vscode "simonsiefke.svg-preview"
+vscode "svelte.svelte-vscode"
+vscode "tamasfe.even-better-toml"
+vscode "tomoki1207.pdf"
+vscode "tyriar.lorem-ipsum"
+vscode "tyriar.sort-lines"
+vscode "vadimcn.vscode-lldb"
+vscode "waderyan.gitblame"
+vscode "wholroyd.jinja"
+vscode "yandeu.five-server"
+vscode "yzhang.markdown-all-in-one"
+vscode "zaferayan.lorem-picsum"
+vscode "zardoy.fix-all-json"

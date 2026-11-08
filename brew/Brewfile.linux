@@ -1,0 +1,7 @@
+# Linux-only entries.
+#
+# Empty on purpose. Everything the server needs from Homebrew is cross-platform
+# and lives in Brewfile. Add an entry here only for a formula with no macOS
+# build, or one that needs a Linux-specific variant or tap. Server-exclusive
+# system packages (docker, dnsmasq, openssh-server, the login shell) belong in
+# ubuntu/apt/packages.sh — this file is not the place for them.
