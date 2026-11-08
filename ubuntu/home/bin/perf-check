@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""System performance diagnostic tool."""
+
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+RESET  = "\033[0m"
+BOLD   = "\033[1m"
+RED    = "\033[31m"
+YELLOW = "\033[33m"
+GREEN  = "\033[32m"
+CYAN   = "\033[36m"
+DIM    = "\033[2m"
+
+
+def run(cmd):
+    try:
+        return subprocess.check_output(cmd, shell=True, text=True, stderr=subprocess.DEVNULL).strip()
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def header(title):
+    width = 60
+    print(f"\n{BOLD}{CYAN}{'─' * width}{RESET}")
+    print(f"{BOLD}{CYAN}  {title}{RESET}")
+    print(f"{BOLD}{CYAN}{'─' * width}{RESET}")
+
+
+def flag(severity, msg):
+    icons = {"crit": f"{RED}[!]{RESET}", "warn": f"{YELLOW}[~]{RESET}", "ok": f"{GREEN}[✓]{RESET}"}
+    print(f"  {icons.get(severity, '   ')} {msg}")
+
+
+def fmt_mb(mb):
+    if mb >= 1024:
+        return f"{mb/1024:.1f} GB"
+    return f"{mb:.0f} MB"
+
+
+# ── CPU ──────────────────────────────────────────────────────────────────────
+
+def check_cpu():
+    header("CPU")
+
+    # load average vs core count
+    with open("/proc/loadavg") as f:
+        parts = f.read().split()
+    load1, load5, load15 = float(parts[0]), float(parts[1]), float(parts[2])
+    cores = int(run("nproc"))
+
+    ratio = load1 / cores
+    severity = "ok" if ratio < 0.7 else ("warn" if ratio < 1.5 else "crit")
+    flag(severity, f"Load average: {load1:.2f} / {load5:.2f} / {load15:.2f}  (cores: {cores}, ratio: {ratio:.2f}×)")
+
+    # cpu breakdown via /proc/stat snapshot x2
+    def cpu_stat():
+        with open("/proc/stat") as f:
+            line = f.readline()
+        fields = list(map(int, line.split()[1:]))
+        total = sum(fields)
+        return fields, total
+
+    import time
+    s1, t1 = cpu_stat(); time.sleep(0.5); s2, t2 = cpu_stat()
+    dt = t2 - t1
+    if dt > 0:
+        us  = (s2[0] - s1[0]) / dt * 100
+        sy  = (s2[2] - s1[2]) / dt * 100
+        id_ = (s2[3] - s1[3]) / dt * 100
+        wa  = (s2[4] - s1[4]) / dt * 100
+        wa_sev = "ok" if wa < 10 else ("warn" if wa < 30 else "crit")
+        flag("ok",   f"CPU usage — user: {us:.1f}%  sys: {sy:.1f}%  idle: {id_:.1f}%")
+        flag(wa_sev, f"I/O wait: {wa:.1f}%{'  ← disk bottleneck' if wa >= 30 else ''}")
+
+    # top cpu consumers
+    out = run("ps -eo pid,args,%cpu --sort=-%cpu --no-headers | head -6")
+    print(f"\n  {DIM}Top CPU consumers:{RESET}")
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) < 3:
+            continue
+        pid = parts[0]
+        cpu = parts[-1]
+        comm = os.path.basename(parts[1])[:22]
+        cpu_f = float(cpu)
+        sev = "ok" if cpu_f < 20 else ("warn" if cpu_f < 60 else "crit")
+        flag(sev, f"{comm:<22} {cpu:>6}%  (pid {pid})")
+
+
+# ── Memory ───────────────────────────────────────────────────────────────────
+
+def check_memory():
+    header("Memory")
+
+    meminfo = {}
+    with open("/proc/meminfo") as f:
+        for line in f:
+            k, v = line.split(":", 1)
+            meminfo[k.strip()] = int(v.strip().split()[0])  # kB
+
+    total_mb    = meminfo["MemTotal"]    / 1024
+    free_mb     = meminfo["MemFree"]     / 1024
+    avail_mb    = meminfo["MemAvailable"]/ 1024
+    bufcache_mb = (meminfo.get("Buffers", 0) + meminfo.get("Cached", 0)) / 1024
+    used_mb     = total_mb - avail_mb
+    pct_used    = used_mb / total_mb * 100
+
+    sev = "ok" if pct_used < 70 else ("warn" if pct_used < 90 else "crit")
+    flag(sev, f"RAM: {fmt_mb(used_mb)} used / {fmt_mb(total_mb)} total  ({pct_used:.0f}%)  —  {fmt_mb(avail_mb)} available")
+    flag("ok", f"Buffers + cache: {fmt_mb(bufcache_mb)}  (reclaimable)")
+
+    # swap
+    swap_total_mb = meminfo.get("SwapTotal", 0) / 1024
+    swap_free_mb  = meminfo.get("SwapFree",  0) / 1024
+    swap_used_mb  = swap_total_mb - swap_free_mb
+    if swap_total_mb > 0:
+        swap_pct = swap_used_mb / swap_total_mb * 100
+        sev = "ok" if swap_pct < 10 else ("warn" if swap_pct < 50 else "crit")
+        flag(sev, f"Swap: {fmt_mb(swap_used_mb)} used / {fmt_mb(swap_total_mb)} total  ({swap_pct:.0f}%)")
+        if swap_used_mb > 512:
+            flag("warn", "Heavy swap use on an HDD causes severe UI latency")
+    else:
+        flag("ok", "No swap configured")
+
+    # oom score check — find process most at risk
+    candidates = []
+    for p in Path("/proc").iterdir():
+        if not p.name.isdigit():
+            continue
+        try:
+            score = int((p / "oom_score").read_text())
+            comm  = (p / "comm").read_text().strip()
+            candidates.append((score, comm, p.name))
+        except (FileNotFoundError, ValueError):
+            pass
+    if candidates:
+        candidates.sort(reverse=True)
+        top_score, top_comm, top_pid = candidates[0]
+        sev = "ok" if top_score < 300 else ("warn" if top_score < 700 else "crit")
+        flag(sev, f"Highest OOM score: {top_comm} (pid {top_pid}) — score {top_score}/1000")
+
+    # top memory consumers
+    out = run("ps -eo pid,args,%mem,rss --sort=-%mem --no-headers | head -6")
+    print(f"\n  {DIM}Top memory consumers:{RESET}")
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+        pid = parts[0]
+        rss = parts[-1]
+        pct = parts[-2]
+        comm = os.path.basename(parts[1])[:22]
+        try:
+            rss_mb = int(rss.strip()) / 1024
+        except ValueError:
+            continue
+        sev = "ok" if rss_mb < 500 else ("warn" if rss_mb < 1500 else "crit")
+        flag(sev, f"{comm:<22} {fmt_mb(rss_mb):>8}  ({pct}%)")
+
+
+# ── Disk I/O ─────────────────────────────────────────────────────────────────
+
+def check_disk():
+    header("Disk")
+
+    # detect rotational drives
+    block = Path("/sys/block")
+    drives = []
+    for dev in sorted(block.iterdir()):
+        # skip loop devices (snap mounts) and dm (LVM/LUKS layers over physical disks)
+        if re.match(r'^(loop|dm-)', dev.name):
+            continue
+        rota_path = dev / "queue" / "rotational"
+        if rota_path.exists():
+            try:
+                rota = int(rota_path.read_text().strip())
+                drives.append((dev.name, rota))
+            except ValueError:
+                pass
+
+    for name, rota in drives:
+        kind = "HDD (spinning)" if rota else "SSD/NVMe"
+        sev  = "warn" if rota else "ok"
+        flag(sev, f"/dev/{name}: {kind}{'  ← slow random I/O; swap on HDD compounds UI lag' if rota else ''}")
+
+    # disk usage
+    out = run("df -h --output=target,pcent,used,size -x tmpfs -x devtmpfs -x squashfs")
+    print(f"\n  {DIM}Filesystem usage:{RESET}")
+    lines = out.splitlines()
+    if lines:
+        print(f"  {DIM}{lines[0]}{RESET}")
+        for line in lines[1:]:
+            parts = line.split()
+            if not parts:
+                continue
+            pct_str = parts[1].rstrip("%")
+            try:
+                pct = int(pct_str)
+            except ValueError:
+                pct = 0
+            sev = "ok" if pct < 80 else ("warn" if pct < 95 else "crit")
+            flag(sev, line)
+
+    # iowait snapshot (already shown in CPU, but check disk read/write rates)
+    try:
+        def diskstat_totals():
+            totals = {"reads": 0, "writes": 0}
+            with open("/proc/diskstats") as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) < 14:
+                        continue
+                    # only physical disks (sd*, nvme*, vd*), skip partitions
+                    if re.match(r'^(sd[a-z]|nvme\d+n\d+|vd[a-z])$', parts[2]):
+                        totals["reads"]  += int(parts[5])   # sectors read
+                        totals["writes"] += int(parts[9])   # sectors written
+            return totals
+
+        import time
+        d1 = diskstat_totals(); time.sleep(1); d2 = diskstat_totals()
+        read_kbs  = (d2["reads"]  - d1["reads"])  * 512 / 1024
+        write_kbs = (d2["writes"] - d1["writes"]) * 512 / 1024
+        sev = "ok" if (read_kbs + write_kbs) < 50*1024 else "warn"
+        flag(sev, f"Disk throughput (1s sample): read {read_kbs/1024:.1f} MB/s  write {write_kbs/1024:.1f} MB/s")
+    except Exception:
+        pass
+
+
+# ── Thermal ──────────────────────────────────────────────────────────────────
+
+def check_thermal():
+    thermal_root = Path("/sys/class/thermal")
+    if not thermal_root.exists():
+        return
+    readings = []
+    for zone in sorted(thermal_root.iterdir()):
+        temp_file = zone / "temp"
+        type_file = zone / "type"
+        if not temp_file.exists():
+            continue
+        try:
+            temp_c = int(temp_file.read_text().strip()) / 1000
+            zone_type = type_file.read_text().strip() if type_file.exists() else zone.name
+            readings.append((zone_type, temp_c))
+        except (ValueError, FileNotFoundError):
+            pass
+
+    if not readings:
+        return
+
+    header("Thermal")
+    for zone_type, temp_c in readings:
+        sev = "ok" if temp_c < 70 else ("warn" if temp_c < 90 else "crit")
+        throttle = "  ← likely throttling" if temp_c >= 90 else ""
+        flag(sev, f"{zone_type:<28} {temp_c:.1f}°C{throttle}")
+
+
+# ── Summary ──────────────────────────────────────────────────────────────────
+
+def summary(issues):
+    header("Summary")
+    if not issues:
+        flag("ok", "No significant performance issues detected.")
+    else:
+        for sev, msg in issues:
+            flag(sev, msg)
+
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+
+def collect_summary():
+    """Re-read key metrics and return [(severity, message)] for the summary."""
+    issues = []
+
+    with open("/proc/stat") as f:
+        line = f.readline()
+    fields = list(map(int, line.split()[1:]))
+    total = sum(fields)
+    if total > 0:
+        wa = fields[4] / total * 100
+        if wa >= 30:
+            issues.append(("crit", f"High I/O wait ({wa:.0f}%) — disk is the bottleneck"))
+        elif wa >= 10:
+            issues.append(("warn", f"Elevated I/O wait ({wa:.0f}%)"))
+
+    with open("/proc/loadavg") as f:
+        parts = f.read().split()
+    load1 = float(parts[0])
+    cores = int(run("nproc"))
+    if load1 / cores >= 1.5:
+        issues.append(("crit", f"Load average very high ({load1:.2f}) relative to {cores} cores"))
+    elif load1 / cores >= 0.7:
+        issues.append(("warn", f"Load average elevated ({load1:.2f}) on {cores} cores"))
+
+    meminfo = {}
+    with open("/proc/meminfo") as f:
+        for line in f:
+            k, v = line.split(":", 1)
+            meminfo[k.strip()] = int(v.strip().split()[0])
+    avail_mb    = meminfo["MemAvailable"] / 1024
+    total_mb    = meminfo["MemTotal"]     / 1024
+    swap_used   = (meminfo.get("SwapTotal", 0) - meminfo.get("SwapFree", 0)) / 1024
+    pct_used    = (total_mb - avail_mb) / total_mb * 100
+    if pct_used >= 90:
+        issues.append(("crit", f"RAM critically low — {fmt_mb(avail_mb)} available of {fmt_mb(total_mb)}"))
+    elif pct_used >= 70:
+        issues.append(("warn", f"RAM usage high ({pct_used:.0f}%) — {fmt_mb(avail_mb)} available"))
+    if swap_used > 512:
+        issues.append(("warn" if swap_used < 1024 else "crit",
+                       f"Swap in use: {fmt_mb(swap_used)} — indicates RAM pressure"))
+
+    for dev in sorted(Path("/sys/block").iterdir()):
+        if re.match(r'^(loop|dm-)', dev.name):
+            continue
+        rota = dev / "queue" / "rotational"
+        if rota.exists():
+            try:
+                if int(rota.read_text().strip()) == 1:
+                    issues.append(("warn", f"/dev/{dev.name} is a spinning HDD — consider SSD for system disk"))
+                    break
+            except ValueError:
+                pass
+
+    return issues
+
+
+def main():
+    if os.geteuid() == 0:
+        print(f"{YELLOW}Note: running as root — all metrics available.{RESET}")
+
+    print(f"\n{BOLD}perf-check{RESET}  —  system performance snapshot")
+
+    check_cpu()
+    check_memory()
+    check_disk()
+    check_thermal()
+    issues = collect_summary()
+    summary(issues)
+    print()
+
+
+if __name__ == "__main__":
+    main()
