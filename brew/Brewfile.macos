@@ -11,8 +11,8 @@ tap "homebrew/cask"
 brew "mas"
 # OpenBSD freely-licensed SSH connectivity tools
 brew "openssh"
-# CLI tool that moves files or folder to the trash
-brew "trash"
+# CLI tool that moves files or folders to the trash, as an `rm` drop-in
+brew "rmtrash"
 # FUSE file system for mounting to another location
 brew "gromgit/fuse/bindfs-mac", trusted: true
 # Application launcher and productivity software

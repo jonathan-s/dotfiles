@@ -96,6 +96,17 @@ alias c="tr -d '\n' | pbcopy"
 # Recursively delete `.DS_Store` files
 alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
 
+# Replace `rm` with `rmtrash`, so deletes land in the Trash and stay recoverable
+# (https://github.com/TBXark/rmtrash). Root keeps the real `rm`: trashing as root
+# would fill /var/root/.Trash, where nothing else can see or empty it.
+rm() {
+	if (( EUID == 0 )); then
+		command rm "$@"
+	else
+		command rmtrash "$@"
+	fi
+}
+
 # Empty the Trash on all mounted volumes and the main HDD.
 # Also, clear Apple’s System Logs to improve shell startup speed.
 # Finally, clear download history from quarantine. https://mths.be/bum
