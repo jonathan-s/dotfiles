@@ -13,6 +13,8 @@
 #       sh router-dns.sh
 #
 # Idempotent: safe to re-run, and it leaves unrelated router settings alone.
+# Verified against GL.iNet 4.11 (GL-MT6000): wildcards are added as `address`
+# entries only, and a dnsmasq that fails to come back up is rolled back.
 
 set -eu
 
@@ -43,11 +45,11 @@ command -v uci > /dev/null 2>&1 || {
 	exit 1
 }
 
-# list_has checks whether a UCI list already contains a value (uci show prints
-# lists space- or newline-separated, so a fixed-string grep is sufficient).
-# add_list only appends when missing.
+# list_has checks whether a UCI list already contains a value. It reads the
+# option directly instead of grepping `uci show`, so the comparison is exact and
+# can never match a different section's option.
 list_has() { # section option value
-	uci -q show dhcp 2> /dev/null | grep -qF "$2='$3'"
+	uci -q get "${1}.${2}" 2> /dev/null | tr ' ' '\n' | grep -qxF "$3"
 }
 add_list() { # section option value
 	if list_has "$1" "$2" "$3"; then
@@ -64,10 +66,16 @@ uci set "dhcp.@dnsmasq[0].domain=$DOMAIN_SUFFIX"
 ok "dnsmasq domain set to '$DOMAIN_SUFFIX'."
 
 # ─── 2. Wildcard DNS for the LAN and public domains ─────────────────────────
+# `address=/domain/ip` already answers every name in the domain locally, so
+# `local=/domain/` entries add nothing — and on GL.iNet firmware they are
+# actively harmful: the generator joins the whole `local` UCI list with spaces
+# onto one line,
+#
+#     local=/lan/ /home.example.lan/ /home.example.com/
+#
+# which dnsmasq rejects ("error at line 15"), so it never starts and the entire
+# LAN loses DNS. `address` entries are emitted one per line and are safe.
 info "Ensuring *.$LAN_DOMAIN and *.$PUBLIC_DOMAIN resolve to $LAN_SERVER_IP..."
-add_list 'dhcp.@dnsmasq[0]' local "/$DOMAIN_SUFFIX/"
-add_list 'dhcp.@dnsmasq[0]' local "/$LAN_DOMAIN/"
-add_list 'dhcp.@dnsmasq[0]' local "/$PUBLIC_DOMAIN/"
 add_list 'dhcp.@dnsmasq[0]' address "/$LAN_DOMAIN/$LAN_SERVER_IP"
 add_list 'dhcp.@dnsmasq[0]' address "/$PUBLIC_DOMAIN/$LAN_SERVER_IP"
 ok "Wildcard entries ensured."
@@ -77,28 +85,65 @@ info "Making LAN DHCP advertise $LAN_ROUTER_IP as DNS (option 6)..."
 add_list 'dhcp.lan' dhcp_option "6,$LAN_ROUTER_IP"
 ok "DHCP DNS advertisement ensured."
 
-# ─── 4. Commit and restart ───────────────────────────────────────────────────
+dnsmasq_running() { pgrep -f dnsmasq > /dev/null 2>&1; }
+
+# A config dnsmasq cannot parse leaves DNS down for every client, so keep the
+# pre-change file and undo the change when verification fails.
+rollback() { # reason
+	warn "$1"
+	if [ -z "$DHCP_BACKUP" ] || [ ! -f "$DHCP_BACKUP" ]; then
+		echo "No backup available — restore /etc/config/dhcp by hand." >&2
+		exit 1
+	fi
+	info "Rolling back to the pre-change dhcp config..."
+	cp "$DHCP_BACKUP" /etc/config/dhcp
+	uci commit dhcp
+	/etc/init.d/dnsmasq restart > /dev/null 2>&1
+	sleep 2
+	if dnsmasq_running; then
+		ok "Rolled back; dnsmasq is running again."
+	else
+		warn "dnsmasq still down after rollback — check it by hand."
+	fi
+	exit 1
+}
+
+# ─── 4. Backup, commit and restart ───────────────────────────────────────────
+DHCP_BACKUP=
+if [ -f /etc/config/dhcp ]; then
+	DHCP_BACKUP=/tmp/dhcp.pre-router-dns.$$
+	cp /etc/config/dhcp "$DHCP_BACKUP"
+fi
+
 info "Committing UCI config and restarting dnsmasq..."
 uci commit dhcp
 /etc/init.d/dnsmasq restart > /dev/null 2>&1
 sleep 2
-ok "dnsmasq restarted."
+
+if dnsmasq_running; then
+	ok "dnsmasq restarted."
+else
+	logread 2> /dev/null | grep -i 'dnsmasq.*\(error\|FAILED\)' | tail -n3
+	rollback "dnsmasq is not running after the restart."
+fi
 
 # ─── 5. Verify ───────────────────────────────────────────────────────────────
-info "Verifying local wildcard DNS..."
-LOCAL=$(dig +short "test.$LAN_DOMAIN" @127.0.0.1 2> /dev/null | tail -n1)
+# Query the router's own address: GL.iNet's dnsmasq runs with bind-dynamic and
+# local-service, so it does not answer on 127.0.0.1 even when it is healthy.
+info "Verifying wildcard DNS via $LAN_ROUTER_IP..."
+LOCAL=$(dig +short "test.$LAN_DOMAIN" "@$LAN_ROUTER_IP" 2> /dev/null | tail -n1)
 if [ "$LOCAL" = "$LAN_SERVER_IP" ]; then
 	ok "test.$LAN_DOMAIN → $LOCAL"
 else
-	warn "Local wildcard check failed: got '$LOCAL', expected $LAN_SERVER_IP."
+	rollback "Wildcard check failed: got '$LOCAL', expected $LAN_SERVER_IP."
 fi
 
 info "Verifying external DNS..."
-EXTERNAL=$(dig +short example.com @127.0.0.1 2> /dev/null | tail -n1)
+EXTERNAL=$(dig +short example.com "@$LAN_ROUTER_IP" 2> /dev/null | tail -n1)
 if [ -n "$EXTERNAL" ]; then
 	ok "External DNS working (example.com → $EXTERNAL)"
 else
-	warn "External DNS not resolving — check upstream WAN DNS."
+	warn "External DNS not resolving — check upstream WAN DNS (unrelated to this change)."
 fi
 
 printf '\n%s\n' "Done. Clients pick up $LAN_ROUTER_IP as DNS when their DHCP lease renews."
